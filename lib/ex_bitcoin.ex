@@ -3,16 +3,17 @@ defmodule ExBitcoin do
   Documentation for ExBitcoin.
   """
 
-  @doc """
-  Hello world.
+  require ExBitcoinUtils.Gen
+  alias ExBitcoinUtils.Gen
 
-  ## Examples
+  path =
+    :ex_bitcoin
+    |> Application.app_dir
+    |> Path.join("priv/rpc")
 
-      iex> ExBitcoin.hello
-      :world
+  path
+  |> File.ls!
+  |> Enum.map(&Path.join(path, &1))
+  |> Enum.map(&Gen.module/1)
 
-  """
-  def hello do
-    :world
-  end
 end

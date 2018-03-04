@@ -1,0 +1,173 @@
+{
+  "ns": "Elixir.Tx",
+  "items": [
+    {
+      "name": "combinerawtransaction",
+      "desc": "combinerawtransaction [\"hexstring\",...]\n\nCombine multiple partially signed transactions into one transaction.\nThe combined transaction may be another partially signed transaction or a \nfully signed transaction.\nArguments:\n1. \"txs\"         (string) A json array of hex strings of partially signed transactions\n    [\n      \"hexstring\"     (string) A transaction hash\n      ,...\n    ]\n\nResult:\n\"hex\"            (string) The hex-encoded raw transaction with signature(s)\n\nExamples:\n> bitcoin-cli combinerawtransaction [\"myhex1\", \"myhex2\", \"myhex3\"]\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "txs",
+          "desc": "A json array of hex strings of partially signed transactions     [       \"hexstring\"     (string) A transaction hash       ,...     ]",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "createrawtransaction",
+      "desc": "createrawtransaction [{\"txid\":\"id\",\"vout\":n},...] {\"address\":amount,\"data\":\"hex\",...} ( locktime ) ( replaceable )\n\nCreate a transaction spending the given inputs and creating new outputs.\nOutputs can be addresses or data.\nReturns hex-encoded raw transaction.\nNote that the transaction's inputs are not signed, and\nit is not stored in the wallet or transmitted to the network.\n\nArguments:\n1. \"inputs\"                (array, required) A json array of json objects\n     [\n       {\n         \"txid\":\"id\",    (string, required) The transaction id\n         \"vout\":n,         (numeric, required) The output number\n         \"sequence\":n      (numeric, optional) The sequence number\n       } \n       ,...\n     ]\n2. \"outputs\"               (object, required) a json object with outputs\n    {\n      \"address\": x.xxx,    (numeric or string, required) The key is the bitcoin address, the numeric value (can be string) is the BTC amount\n      \"data\": \"hex\"      (string, required) The key is \"data\", the value is hex encoded data\n      ,...\n    }\n3. locktime                  (numeric, optional, default=0) Raw locktime. Non-0 value also locktime-activates inputs\n4. replaceable               (boolean, optional, default=false) Marks this transaction as BIP125 replaceable.\n                             Allows this transaction to be replaced by a transaction with higher fees. If provided, it is an error if explicit sequence numbers are incompatible.\n\nResult:\n\"transaction\"              (string) hex string of the transaction\n\nExamples:\n> bitcoin-cli createrawtransaction \"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"address\\\":0.01}\"\n> bitcoin-cli createrawtransaction \"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"data\\\":\\\"00010203\\\"}\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"createrawtransaction\", \"params\": [\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"address\\\":0.01}\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"createrawtransaction\", \"params\": [\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"data\\\":\\\"00010203\\\"}\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "array",
+          "required": true,
+          "name": "inputs",
+          "desc": "A json array of json objects      [        {          \"txid\":\"id\",    (string, required) The transaction id          \"vout\":n,         (numeric, required) The output number          \"sequence\":n      (numeric, optional) The sequence number        }         ,...      ]",
+          "default": null
+        },
+        {
+          "type": "object",
+          "required": true,
+          "name": "outputs",
+          "desc": "a json object with outputs     {       \"address\": x.xxx,    (numeric or string, required) The key is the bitcoin address, the numeric value (can be string) is the BTC amount       \"data\": \"hex\"      (string, required) The key is \"data\", the value is hex encoded data       ,...     }",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "locktime",
+          "desc": "Raw locktime. Non-0 value also locktime-activates inputs",
+          "default": "0"
+        },
+        {
+          "type": "boolean",
+          "required": false,
+          "name": "replaceable",
+          "desc": "Marks this transaction as BIP125 replaceable.                              Allows this transaction to be replaced by a transaction with higher fees. If provided, it is an error if explicit sequence numbers are incompatible.",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "decoderawtransaction",
+      "desc": "decoderawtransaction \"hexstring\"\n\nReturn a JSON object representing the serialized, hex-encoded transaction.\n\nArguments:\n1. \"hexstring\"      (string, required) The transaction hex string\n\nResult:\n{\n  \"txid\" : \"id\",        (string) The transaction id\n  \"hash\" : \"id\",        (string) The transaction hash (differs from txid for witness transactions)\n  \"size\" : n,             (numeric) The transaction size\n  \"vsize\" : n,            (numeric) The virtual transaction size (differs from size for witness transactions)\n  \"version\" : n,          (numeric) The version\n  \"locktime\" : ttt,       (numeric) The lock time\n  \"vin\" : [               (array of json objects)\n     {\n       \"txid\": \"id\",    (string) The transaction id\n       \"vout\": n,         (numeric) The output number\n       \"scriptSig\": {     (json object) The script\n         \"asm\": \"asm\",  (string) asm\n         \"hex\": \"hex\"   (string) hex\n       },\n       \"txinwitness\": [\"hex\", ...] (array of string) hex-encoded witness data (if any)\n       \"sequence\": n     (numeric) The script sequence number\n     }\n     ,...\n  ],\n  \"vout\" : [             (array of json objects)\n     {\n       \"value\" : x.xxx,            (numeric) The value in BTC\n       \"n\" : n,                    (numeric) index\n       \"scriptPubKey\" : {          (json object)\n         \"asm\" : \"asm\",          (string) the asm\n         \"hex\" : \"hex\",          (string) the hex\n         \"reqSigs\" : n,            (numeric) The required sigs\n         \"type\" : \"pubkeyhash\",  (string) The type, eg 'pubkeyhash'\n         \"addresses\" : [           (json array of string)\n           \"12tvKAXCxZjSmdNbao16dKXC8tRWfcF5oc\"   (string) bitcoin address\n           ,...\n         ]\n       }\n     }\n     ,...\n  ],\n}\n\nExamples:\n> bitcoin-cli decoderawtransaction \"hexstring\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"decoderawtransaction\", \"params\": [\"hexstring\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "hexstring",
+          "desc": "The transaction hex string",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "decodescript",
+      "desc": "decodescript \"hexstring\"\n\nDecode a hex-encoded script.\n\nArguments:\n1. \"hexstring\"     (string) the hex encoded script\n\nResult:\n{\n  \"asm\":\"asm\",   (string) Script public key\n  \"hex\":\"hex\",   (string) hex encoded public key\n  \"type\":\"type\", (string) The output type\n  \"reqSigs\": n,    (numeric) The required signatures\n  \"addresses\": [   (json array of string)\n     \"address\"     (string) bitcoin address\n     ,...\n  ],\n  \"p2sh\",\"address\" (string) address of P2SH script wrapping this redeem script (not returned if the script is already a P2SH).\n}\n\nExamples:\n> bitcoin-cli decodescript \"hexstring\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"decodescript\", \"params\": [\"hexstring\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "hexstring",
+          "desc": "the hex encoded script",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "fundrawtransaction",
+      "desc": "fundrawtransaction \"hexstring\" ( options )\n\nAdd inputs to a transaction until it has enough in value to meet its out value.\nThis will not modify existing inputs, and will add at most one change output to the outputs.\nNo existing outputs will be modified unless \"subtractFeeFromOutputs\" is specified.\nNote that inputs which were signed may need to be resigned after completion since in/outputs have been added.\nThe inputs added will not be signed, use signrawtransaction for that.\nNote that all existing inputs must have their previous output transaction be in the wallet.\nNote that all inputs selected must be of standard form and P2SH scripts must be\nin the wallet using importaddress or addmultisigaddress (to calculate fees).\nYou can see whether this is the case by checking the \"solvable\" field in the listunspent output.\nOnly pay-to-pubkey, multisig, and P2SH versions thereof are currently supported for watch-only\n\nArguments:\n1. \"hexstring\"           (string, required) The hex string of the raw transaction\n2. options                 (object, optional)\n   {\n     \"changeAddress\"          (string, optional, default pool address) The bitcoin address to receive the change\n     \"changePosition\"         (numeric, optional, default random) The index of the change output\n     \"includeWatching\"        (boolean, optional, default false) Also select inputs which are watch only\n     \"lockUnspents\"           (boolean, optional, default false) Lock selected unspent outputs\n     \"feeRate\"                (numeric, optional, default not set: makes wallet determine the fee) Set a specific feerate (BTC per KB)\n     \"subtractFeeFromOutputs\" (array, optional) A json array of integers.\n                              The fee will be equally deducted from the amount of each specified output.\n                              The outputs are specified by their zero-based index, before any change output is added.\n                              Those recipients will receive less bitcoins than you enter in their corresponding amount field.\n                              If no outputs are specified here, the sender pays the fee.\n                                  [vout_index,...]\n     \"replaceable\"            (boolean, optional) Marks this transaction as BIP125 replaceable.\n                              Allows this transaction to be replaced by a transaction with higher fees\n     \"conf_target\"            (numeric, optional) Confirmation target (in blocks)\n     \"estimate_mode\"          (string, optional, default=UNSET) The fee estimate mode, must be one of:\n         \"UNSET\"\n         \"ECONOMICAL\"\n         \"CONSERVATIVE\"\n   }\n                         for backward compatibility: passing in a true instead of an object will result in {\"includeWatching\":true}\n\nResult:\n{\n  \"hex\":       \"value\", (string)  The resulting raw transaction (hex-encoded string)\n  \"fee\":       n,         (numeric) Fee in BTC the resulting transaction pays\n  \"changepos\": n          (numeric) The position of the added change output, or -1\n}\n\nExamples:\n\nCreate a transaction with no inputs\n> bitcoin-cli createrawtransaction \"[]\" \"{\\\"myaddress\\\":0.01}\"\n\nAdd sufficient unsigned inputs to meet the output value\n> bitcoin-cli fundrawtransaction \"rawtransactionhex\"\n\nSign the transaction\n> bitcoin-cli signrawtransaction \"fundedtransactionhex\"\n\nSend the transaction\n> bitcoin-cli sendrawtransaction \"signedtransactionhex\"\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "hexstring",
+          "desc": "The hex string of the raw transaction",
+          "default": null
+        },
+        {
+          "type": "object",
+          "required": false,
+          "name": "options",
+          "desc": "{      \"changeAddress\"          (string, optional, default pool address) The bitcoin address to receive the change      \"changePosition\"         (numeric, optional, default random) The index of the change output      \"includeWatching\"        (boolean, optional, default false) Also select inputs which are watch only      \"lockUnspents\"           (boolean, optional, default false) Lock selected unspent outputs      \"feeRate\"                (numeric, optional, default not set: makes wallet determine the fee) Set a specific feerate (BTC per KB)      \"subtractFeeFromOutputs\" (array, optional) A json array of integers.                               The fee will be equally deducted from the amount of each specified output.                               The outputs are specified by their zero-based index, before any change output is added.                               Those recipients will receive less bitcoins than you enter in their corresponding amount field.                               If no outputs are specified here, the sender pays the fee.                                   [vout_index,...]      \"replaceable\"            (boolean, optional) Marks this transaction as BIP125 replaceable.                               Allows this transaction to be replaced by a transaction with higher fees      \"conf_target\"            (numeric, optional) Confirmation target (in blocks)      \"estimate_mode\"          (string, optional, default=UNSET) The fee estimate mode, must be one of:          \"UNSET\"          \"ECONOMICAL\"          \"CONSERVATIVE\"    }                          for backward compatibility: passing in a true instead of an object will result in {\"includeWatching\":true}",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "getrawtransaction",
+      "desc": "getrawtransaction \"txid\" ( verbose )\n\nNOTE: By default this function only works for mempool transactions. If the -txindex option is\nenabled, it also works for blockchain transactions.\nDEPRECATED: for now, it also works for transactions with unspent outputs.\n\nReturn the raw transaction data.\n\nIf verbose is 'true', returns an Object with information about 'txid'.\nIf verbose is 'false' or omitted, returns a string that is serialized, hex-encoded data for 'txid'.\n\nArguments:\n1. \"txid\"      (string, required) The transaction id\n2. verbose       (bool, optional, default=false) If false, return a string, otherwise return a json object\n\nResult (if verbose is not set or set to false):\n\"data\"      (string) The serialized, hex-encoded data for 'txid'\n\nResult (if verbose is set to true):\n{\n  \"hex\" : \"data\",       (string) The serialized, hex-encoded data for 'txid'\n  \"txid\" : \"id\",        (string) The transaction id (same as provided)\n  \"hash\" : \"id\",        (string) The transaction hash (differs from txid for witness transactions)\n  \"size\" : n,             (numeric) The serialized transaction size\n  \"vsize\" : n,            (numeric) The virtual transaction size (differs from size for witness transactions)\n  \"version\" : n,          (numeric) The version\n  \"locktime\" : ttt,       (numeric) The lock time\n  \"vin\" : [               (array of json objects)\n     {\n       \"txid\": \"id\",    (string) The transaction id\n       \"vout\": n,         (numeric) \n       \"scriptSig\": {     (json object) The script\n         \"asm\": \"asm\",  (string) asm\n         \"hex\": \"hex\"   (string) hex\n       },\n       \"sequence\": n      (numeric) The script sequence number\n       \"txinwitness\": [\"hex\", ...] (array of string) hex-encoded witness data (if any)\n     }\n     ,...\n  ],\n  \"vout\" : [              (array of json objects)\n     {\n       \"value\" : x.xxx,            (numeric) The value in BTC\n       \"n\" : n,                    (numeric) index\n       \"scriptPubKey\" : {          (json object)\n         \"asm\" : \"asm\",          (string) the asm\n         \"hex\" : \"hex\",          (string) the hex\n         \"reqSigs\" : n,            (numeric) The required sigs\n         \"type\" : \"pubkeyhash\",  (string) The type, eg 'pubkeyhash'\n         \"addresses\" : [           (json array of string)\n           \"address\"        (string) bitcoin address\n           ,...\n         ]\n       }\n     }\n     ,...\n  ],\n  \"blockhash\" : \"hash\",   (string) the block hash\n  \"confirmations\" : n,      (numeric) The confirmations\n  \"time\" : ttt,             (numeric) The transaction time in seconds since epoch (Jan 1 1970 GMT)\n  \"blocktime\" : ttt         (numeric) The block time in seconds since epoch (Jan 1 1970 GMT)\n}\n\nExamples:\n> bitcoin-cli getrawtransaction \"mytxid\"\n> bitcoin-cli getrawtransaction \"mytxid\" true\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getrawtransaction\", \"params\": [\"mytxid\", true] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "txid",
+          "desc": "The transaction id",
+          "default": null
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "verbose",
+          "desc": "If false, return a string, otherwise return a json object",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "sendrawtransaction",
+      "desc": "sendrawtransaction \"hexstring\" ( allowhighfees )\n\nSubmits raw transaction (serialized, hex-encoded) to local node and network.\n\nAlso see createrawtransaction and signrawtransaction calls.\n\nArguments:\n1. \"hexstring\"    (string, required) The hex string of the raw transaction)\n2. allowhighfees    (boolean, optional, default=false) Allow high fees\n\nResult:\n\"hex\"             (string) The transaction hash in hex\n\nExamples:\n\nCreate a transaction\n> bitcoin-cli createrawtransaction \"[{\\\"txid\\\" : \\\"mytxid\\\",\\\"vout\\\":0}]\" \"{\\\"myaddress\\\":0.01}\"\nSign the transaction, and get back the hex\n> bitcoin-cli signrawtransaction \"myhex\"\n\nSend the transaction (signed hex)\n> bitcoin-cli sendrawtransaction \"signedhex\"\n\nAs a json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"sendrawtransaction\", \"params\": [\"signedhex\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "hexstring",
+          "desc": "The hex string of the raw transaction)",
+          "default": null
+        },
+        {
+          "type": "boolean",
+          "required": false,
+          "name": "allowhighfees",
+          "desc": "Allow high fees",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "signrawtransaction",
+      "desc": "signrawtransaction \"hexstring\" ( [{\"txid\":\"id\",\"vout\":n,\"scriptPubKey\":\"hex\",\"redeemScript\":\"hex\"},...] [\"privatekey1\",...] sighashtype )\n\nSign inputs for raw transaction (serialized, hex-encoded).\nThe second optional argument (may be null) is an array of previous transaction outputs that\nthis transaction depends on but may not yet be in the block chain.\nThe third optional argument (may be null) is an array of base58-encoded private\nkeys that, if given, will be the only keys used to sign the transaction.\n\n\nArguments:\n1. \"hexstring\"     (string, required) The transaction hex string\n2. \"prevtxs\"       (string, optional) An json array of previous dependent transaction outputs\n     [               (json array of json objects, or 'null' if none provided)\n       {\n         \"txid\":\"id\",             (string, required) The transaction id\n         \"vout\":n,                  (numeric, required) The output number\n         \"scriptPubKey\": \"hex\",   (string, required) script key\n         \"redeemScript\": \"hex\",   (string, required for P2SH or P2WSH) redeem script\n         \"amount\": value            (numeric, required) The amount spent\n       }\n       ,...\n    ]\n3. \"privkeys\"     (string, optional) A json array of base58-encoded private keys for signing\n    [                  (json array of strings, or 'null' if none provided)\n      \"privatekey\"   (string) private key in base58-encoding\n      ,...\n    ]\n4. \"sighashtype\"     (string, optional, default=ALL) The signature hash type. Must be one of\n       \"ALL\"\n       \"NONE\"\n       \"SINGLE\"\n       \"ALL|ANYONECANPAY\"\n       \"NONE|ANYONECANPAY\"\n       \"SINGLE|ANYONECANPAY\"\n\nResult:\n{\n  \"hex\" : \"value\",           (string) The hex-encoded raw transaction with signature(s)\n  \"complete\" : true|false,   (boolean) If the transaction has a complete set of signatures\n  \"errors\" : [                 (json array of objects) Script verification errors (if there are any)\n    {\n      \"txid\" : \"hash\",           (string) The hash of the referenced, previous transaction\n      \"vout\" : n,                (numeric) The index of the output to spent and used as input\n      \"scriptSig\" : \"hex\",       (string) The hex-encoded signature script\n      \"sequence\" : n,            (numeric) Script sequence number\n      \"error\" : \"text\"           (string) Verification or signing error related to the input\n    }\n    ,...\n  ]\n}\n\nExamples:\n> bitcoin-cli signrawtransaction \"myhex\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"signrawtransaction\", \"params\": [\"myhex\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "hexstring",
+          "desc": "The transaction hex string",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "prevtxs",
+          "desc": "An json array of previous dependent transaction outputs      [               (json array of json objects, or 'null' if none provided)        {          \"txid\":\"id\",             (string, required) The transaction id          \"vout\":n,                  (numeric, required) The output number          \"scriptPubKey\": \"hex\",   (string, required) script key          \"redeemScript\": \"hex\",   (string, required for P2SH or P2WSH) redeem script          \"amount\": value            (numeric, required) The amount spent        }        ,...     ]",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "privkeys",
+          "desc": "A json array of base58-encoded private keys for signing     [                  (json array of strings, or 'null' if none provided)       \"privatekey\"   (string) private key in base58-encoding       ,...     ]",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "sighashtype",
+          "desc": "The signature hash type. Must be one of        \"ALL\"        \"NONE\"        \"SINGLE\"        \"ALL|ANYONECANPAY\"        \"NONE|ANYONECANPAY\"        \"SINGLE|ANYONECANPAY\"",
+          "default": "ALL"
+        }
+      ]
+    }
+  ],
+  "desc": "Raw transaction related RPC"
+}

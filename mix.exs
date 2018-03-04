@@ -20,7 +20,9 @@ defmodule ExBitcoin.MixProject do
   defp deps do
     [
       {:auto_error, "~> 0.1.0"},
-      {:poison, "~> 3.0"}
+      {:decimal,   "~> 1.1"},
+      {:httpoison, "~> 0.13"},
+      {:poison, "~> 3.0"},
     ]
   end
 end

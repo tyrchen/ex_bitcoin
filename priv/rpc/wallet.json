@@ -1,0 +1,933 @@
+{
+  "ns": "Wallet",
+  "items": [
+    {
+      "name": "abandontransaction",
+      "desc": "abandontransaction \"txid\"\n\nMark in-wallet transaction <txid> as abandoned\nThis will mark this transaction and all its in-wallet descendants as abandoned which will allow\nfor their inputs to be respent.  It can be used to replace \"stuck\" or evicted transactions.\nIt only works on transactions which are not included in a block and are not currently in the mempool.\nIt has no effect on transactions which are already conflicted or abandoned.\n\nArguments:\n1. \"txid\"    (string, required) The transaction id\n\nResult:\n\nExamples:\n> bitcoin-cli abandontransaction \"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"abandontransaction\", \"params\": [\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "txid",
+          "desc": "The transaction id",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "abortrescan",
+      "desc": "abortrescan\n\nStops current wallet rescan triggered e.g. by an importprivkey call.\n\nExamples:\n\nImport a private key\n> bitcoin-cli importprivkey \"mykey\"\n\nAbort the running wallet rescan\n> bitcoin-cli abortrescan \n\nAs a JSON-RPC call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"abortrescan\", \"params\": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": []
+    },
+    {
+      "name": "addmultisigaddress",
+      "desc": "addmultisigaddress nrequired [\"key\",...] ( \"account\" )\n\nAdd a nrequired-to-sign multisignature address to the wallet.\nEach key is a Bitcoin address or hex-encoded public key.\nIf 'account' is specified (DEPRECATED), assign address to that account.\n\nArguments:\n1. nrequired        (numeric, required) The number of required signatures out of the n keys or addresses.\n2. \"keys\"         (string, required) A json array of bitcoin addresses or hex-encoded public keys\n     [\n       \"address\"  (string) bitcoin address or hex-encoded public key\n       ...,\n     ]\n3. \"account\"      (string, optional) DEPRECATED. An account to assign the addresses to.\n\nResult:\n\"address\"         (string) A bitcoin address associated with the keys.\n\nExamples:\n\nAdd a multisig address from 2 addresses\n> bitcoin-cli addmultisigaddress 2 \"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\",\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"\n\nAs json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"addmultisigaddress\", \"params\": [2, \"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\",\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "numeric",
+          "required": true,
+          "name": "nrequired",
+          "desc": "The number of required signatures out of the n keys or addresses.",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": true,
+          "name": "keys",
+          "desc": "A json array of bitcoin addresses or hex-encoded public keys      [        \"address\"  (string) bitcoin address or hex-encoded public key        ...,      ]",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "account",
+          "desc": "DEPRECATED. An account to assign the addresses to.",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "addwitnessaddress",
+      "desc": "addwitnessaddress \"address\"\n\nAdd a witness address for a script (with pubkey or redeemscript known).\nIt returns the witness script.\n\nArguments:\n1. \"address\"       (string, required) An address known to the wallet\n\nResult:\n\"witnessaddress\",  (string) The value of the new address (P2SH of witness script).\n}\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "address",
+          "desc": "An address known to the wallet",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "backupwallet",
+      "desc": "backupwallet \"destination\"\n\nSafely copies current wallet file to destination, which can be a directory or a path with filename.\n\nArguments:\n1. \"destination\"   (string) The destination directory or file\n\nExamples:\n> bitcoin-cli backupwallet \"backup.dat\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"backupwallet\", \"params\": [\"backup.dat\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "destination",
+          "desc": "The destination directory or file",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "bumpfee",
+      "desc": "bumpfee \"txid\" ( options ) \n\nBumps the fee of an opt-in-RBF transaction T, replacing it with a new transaction B.\nAn opt-in RBF transaction with the given txid must be in the wallet.\nThe command will pay the additional fee by decreasing (or perhaps removing) its change output.\nIf the change output is not big enough to cover the increased fee, the command will currently fail\ninstead of adding new inputs to compensate. (A future implementation could improve this.)\nThe command will fail if the wallet or mempool contains a transaction that spends one of T's outputs.\nBy default, the new fee will be calculated automatically using estimatefee.\nThe user can specify a confirmation target for estimatefee.\nAlternatively, the user can specify totalFee, or use RPC settxfee to set a higher fee rate.\nAt a minimum, the new fee rate must be high enough to pay an additional new relay fee (incrementalfee\nreturned by getnetworkinfo) to enter the node's mempool.\n\nArguments:\n1. txid                  (string, required) The txid to be bumped\n2. options               (object, optional)\n   {\n     \"confTarget\"        (numeric, optional) Confirmation target (in blocks)\n     \"totalFee\"          (numeric, optional) Total fee (NOT feerate) to pay, in satoshis.\n                         In rare cases, the actual fee paid might be slightly higher than the specified\n                         totalFee if the tx change output has to be removed because it is too close to\n                         the dust threshold.\n     \"replaceable\"       (boolean, optional, default true) Whether the new transaction should still be\n                         marked bip-125 replaceable. If true, the sequence numbers in the transaction will\n                         be left unchanged from the original. If false, any input sequence numbers in the\n                         original transaction that were less than 0xfffffffe will be increased to 0xfffffffe\n                         so the new transaction will not be explicitly bip-125 replaceable (though it may\n                         still be replaceable in practice, for example if it has unconfirmed ancestors which\n                         are replaceable).\n     \"estimate_mode\"     (string, optional, default=UNSET) The fee estimate mode, must be one of:\n         \"UNSET\"\n         \"ECONOMICAL\"\n         \"CONSERVATIVE\"\n   }\n\nResult:\n{\n  \"txid\":    \"value\",   (string)  The id of the new transaction\n  \"origfee\":  n,         (numeric) Fee of the replaced transaction\n  \"fee\":      n,         (numeric) Fee of the new transaction\n  \"errors\":  [ str... ] (json array of strings) Errors encountered during processing (may be empty)\n}\n\nExamples:\n\nBump the fee, get the new transaction's txid\n> bitcoin-cli bumpfee <txid>\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "txid",
+          "desc": "The txid to be bumped",
+          "default": null
+        },
+        {
+          "type": "object",
+          "required": false,
+          "name": "options",
+          "desc": "{      \"confTarget\"        (numeric, optional) Confirmation target (in blocks)      \"totalFee\"          (numeric, optional) Total fee (NOT feerate) to pay, in satoshis.                          In rare cases, the actual fee paid might be slightly higher than the specified                          totalFee if the tx change output has to be removed because it is too close to                          the dust threshold.      \"replaceable\"       (boolean, optional, default true) Whether the new transaction should still be                          marked bip-125 replaceable. If true, the sequence numbers in the transaction will                          be left unchanged from the original. If false, any input sequence numbers in the                          original transaction that were less than 0xfffffffe will be increased to 0xfffffffe                          so the new transaction will not be explicitly bip-125 replaceable (though it may                          still be replaceable in practice, for example if it has unconfirmed ancestors which                          are replaceable).      \"estimate_mode\"     (string, optional, default=UNSET) The fee estimate mode, must be one of:          \"UNSET\"          \"ECONOMICAL\"          \"CONSERVATIVE\"    }",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "dumpprivkey",
+      "desc": "dumpprivkey \"address\"\n\nReveals the private key corresponding to 'address'.\nThen the importprivkey can be used with this output\n\nArguments:\n1. \"address\"   (string, required) The bitcoin address for the private key\n\nResult:\n\"key\"                (string) The private key\n\nExamples:\n> bitcoin-cli dumpprivkey \"myaddress\"\n> bitcoin-cli importprivkey \"mykey\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"dumpprivkey\", \"params\": [\"myaddress\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "address",
+          "desc": "The bitcoin address for the private key",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "dumpwallet",
+      "desc": "dumpwallet \"filename\"\n\nDumps all wallet keys in a human-readable format to a server-side file. This does not allow overwriting existing files.\n\nArguments:\n1. \"filename\"    (string, required) The filename with path (either absolute or relative to bitcoind)\n\nResult:\n{                           (json object)\n  \"filename\" : {        (string) The filename with full absolute path\n}\n\nExamples:\n> bitcoin-cli dumpwallet \"test\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"dumpwallet\", \"params\": [\"test\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "filename",
+          "desc": "The filename with path (either absolute or relative to bitcoind)",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "encryptwallet",
+      "desc": "encryptwallet \"passphrase\"\n\nEncrypts the wallet with 'passphrase'. This is for first time encryption.\nAfter this, any calls that interact with private keys such as sending or signing \nwill require the passphrase to be set prior the making these calls.\nUse the walletpassphrase call for this, and then walletlock call.\nIf the wallet is already encrypted, use the walletpassphrasechange call.\nNote that this will shutdown the server.\n\nArguments:\n1. \"passphrase\"    (string) The pass phrase to encrypt the wallet with. It must be at least 1 character, but should be long.\n\nExamples:\n\nEncrypt your wallet\n> bitcoin-cli encryptwallet \"my pass phrase\"\n\nNow set the passphrase to use the wallet, such as for signing or sending bitcoin\n> bitcoin-cli walletpassphrase \"my pass phrase\"\n\nNow we can do something like sign\n> bitcoin-cli signmessage \"address\" \"test message\"\n\nNow lock the wallet again by removing the passphrase\n> bitcoin-cli walletlock \n\nAs a json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"encryptwallet\", \"params\": [\"my pass phrase\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "passphrase",
+          "desc": "The pass phrase to encrypt the wallet with. It must be at least 1 character, but should be long.",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "getaccount",
+      "desc": "getaccount \"address\"\n\nDEPRECATED. Returns the account associated with the given address.\n\nArguments:\n1. \"address\"         (string, required) The bitcoin address for account lookup.\n\nResult:\n\"accountname\"        (string) the account address\n\nExamples:\n> bitcoin-cli getaccount \"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getaccount\", \"params\": [\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "address",
+          "desc": "The bitcoin address for account lookup.",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "getaccountaddress",
+      "desc": "getaccountaddress \"account\"\n\nDEPRECATED. Returns the current Bitcoin address for receiving payments to this account.\n\nArguments:\n1. \"account\"       (string, required) The account name for the address. It can also be set to the empty string \"\" to represent the default account. The account does not need to exist, it will be created and a new address created  if there is no account by the given name.\n\nResult:\n\"address\"          (string) The account bitcoin address\n\nExamples:\n> bitcoin-cli getaccountaddress \n> bitcoin-cli getaccountaddress \"\"\n> bitcoin-cli getaccountaddress \"myaccount\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getaccountaddress\", \"params\": [\"myaccount\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "account",
+          "desc": "The account name for the address. It can also be set to the empty string \"\" to represent the default account. The account does not need to exist, it will be created and a new address created  if there is no account by the given name.",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "getaddressesbyaccount",
+      "desc": "getaddressesbyaccount \"account\"\n\nDEPRECATED. Returns the list of addresses for the given account.\n\nArguments:\n1. \"account\"        (string, required) The account name.\n\nResult:\n[                     (json array of string)\n  \"address\"         (string) a bitcoin address associated with the given account\n  ,...\n]\n\nExamples:\n> bitcoin-cli getaddressesbyaccount \"tabby\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getaddressesbyaccount\", \"params\": [\"tabby\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "account",
+          "desc": "The account name.",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "getbalance",
+      "desc": "getbalance ( \"account\" minconf include_watchonly )\n\nIf account is not specified, returns the server's total available balance.\nIf account is specified (DEPRECATED), returns the balance in the account.\nNote that the account \"\" is not the same as leaving the parameter out.\nThe server total may be different to the balance in the default \"\" account.\n\nArguments:\n1. \"account\"         (string, optional) DEPRECATED. The account string may be given as a\n                     specific account name to find the balance associated with wallet keys in\n                     a named account, or as the empty string (\"\") to find the balance\n                     associated with wallet keys not in any named account, or as \"*\" to find\n                     the balance associated with all wallet keys regardless of account.\n                     When this option is specified, it calculates the balance in a different\n                     way than when it is not specified, and which can count spends twice when\n                     there are conflicting pending transactions (such as those created by\n                     the bumpfee command), temporarily resulting in low or even negative\n                     balances. In general, account balance calculation is not considered\n                     reliable and has resulted in confusing outcomes, so it is recommended to\n                     avoid passing this argument.\n2. minconf           (numeric, optional, default=1) Only include transactions confirmed at least this many times.\n3. include_watchonly (bool, optional, default=false) Also include balance in watch-only addresses (see 'importaddress')\n\nResult:\namount              (numeric) The total amount in BTC received for this account.\n\nExamples:\n\nThe total amount in the wallet with 1 or more confirmations\n> bitcoin-cli getbalance \n\nThe total amount in the wallet at least 6 blocks confirmed\n> bitcoin-cli getbalance \"*\" 6\n\nAs a json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getbalance\", \"params\": [\"*\", 6] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": false,
+          "name": "account",
+          "desc": "DEPRECATED. The account string may be given as a                      specific account name to find the balance associated with wallet keys in                      a named account, or as the empty string (\"\") to find the balance                      associated with wallet keys not in any named account, or as \"*\" to find                      the balance associated with all wallet keys regardless of account.                      When this option is specified, it calculates the balance in a different                      way than when it is not specified, and which can count spends twice when                      there are conflicting pending transactions (such as those created by                      the bumpfee command), temporarily resulting in low or even negative                      balances. In general, account balance calculation is not considered                      reliable and has resulted in confusing outcomes, so it is recommended to                      avoid passing this argument.",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "minconf",
+          "desc": "Only include transactions confirmed at least this many times.",
+          "default": "1"
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "include_watchonly",
+          "desc": "Also include balance in watch-only addresses (see 'importaddress')",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "getnewaddress",
+      "desc": "getnewaddress ( \"account\" )\n\nReturns a new Bitcoin address for receiving payments.\nIf 'account' is specified (DEPRECATED), it is added to the address book \nso payments received with the address will be credited to 'account'.\n\nArguments:\n1. \"account\"        (string, optional) DEPRECATED. The account name for the address to be linked to. If not provided, the default account \"\" is used. It can also be set to the empty string \"\" to represent the default account. The account does not need to exist, it will be created if there is no account by the given name.\n\nResult:\n\"address\"    (string) The new bitcoin address\n\nExamples:\n> bitcoin-cli getnewaddress \n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getnewaddress\", \"params\": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": false,
+          "name": "account",
+          "desc": "DEPRECATED. The account name for the address to be linked to. If not provided, the default account \"\" is used. It can also be set to the empty string \"\" to represent the default account. The account does not need to exist, it will be created if there is no account by the given name.",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "getrawchangeaddress",
+      "desc": "getrawchangeaddress\n\nReturns a new Bitcoin address, for receiving change.\nThis is for use with raw transactions, NOT normal use.\n\nResult:\n\"address\"    (string) The address\n\nExamples:\n> bitcoin-cli getrawchangeaddress \n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getrawchangeaddress\", \"params\": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": []
+    },
+    {
+      "name": "getreceivedbyaccount",
+      "desc": "getreceivedbyaccount \"account\" ( minconf )\n\nDEPRECATED. Returns the total amount received by addresses with <account> in transactions with at least [minconf] confirmations.\n\nArguments:\n1. \"account\"      (string, required) The selected account, may be the default account using \"\".\n2. minconf          (numeric, optional, default=1) Only include transactions confirmed at least this many times.\n\nResult:\namount              (numeric) The total amount in BTC received for this account.\n\nExamples:\n\nAmount received by the default account with at least 1 confirmation\n> bitcoin-cli getreceivedbyaccount \"\"\n\nAmount received at the tabby account including unconfirmed amounts with zero confirmations\n> bitcoin-cli getreceivedbyaccount \"tabby\" 0\n\nThe amount with at least 6 confirmations\n> bitcoin-cli getreceivedbyaccount \"tabby\" 6\n\nAs a json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getreceivedbyaccount\", \"params\": [\"tabby\", 6] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "account",
+          "desc": "The selected account, may be the default account using \"\".",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "minconf",
+          "desc": "Only include transactions confirmed at least this many times.",
+          "default": "1"
+        }
+      ]
+    },
+    {
+      "name": "getreceivedbyaddress",
+      "desc": "getreceivedbyaddress \"address\" ( minconf )\n\nReturns the total amount received by the given address in transactions with at least minconf confirmations.\n\nArguments:\n1. \"address\"         (string, required) The bitcoin address for transactions.\n2. minconf             (numeric, optional, default=1) Only include transactions confirmed at least this many times.\n\nResult:\namount   (numeric) The total amount in BTC received at this address.\n\nExamples:\n\nThe amount from transactions with at least 1 confirmation\n> bitcoin-cli getreceivedbyaddress \"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\"\n\nThe amount including unconfirmed transactions, zero confirmations\n> bitcoin-cli getreceivedbyaddress \"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" 0\n\nThe amount with at least 6 confirmations\n> bitcoin-cli getreceivedbyaddress \"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" 6\n\nAs a json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getreceivedbyaddress\", \"params\": [\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", 6] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "address",
+          "desc": "The bitcoin address for transactions.",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "minconf",
+          "desc": "Only include transactions confirmed at least this many times.",
+          "default": "1"
+        }
+      ]
+    },
+    {
+      "name": "gettransaction",
+      "desc": "gettransaction \"txid\" ( include_watchonly )\n\nGet detailed information about in-wallet transaction <txid>\n\nArguments:\n1. \"txid\"                  (string, required) The transaction id\n2. \"include_watchonly\"     (bool, optional, default=false) Whether to include watch-only addresses in balance calculation and details[]\n\nResult:\n{\n  \"amount\" : x.xxx,        (numeric) The transaction amount in BTC\n  \"fee\": x.xxx,            (numeric) The amount of the fee in BTC. This is negative and only available for the \n                              'send' category of transactions.\n  \"confirmations\" : n,     (numeric) The number of confirmations\n  \"blockhash\" : \"hash\",  (string) The block hash\n  \"blockindex\" : xx,       (numeric) The index of the transaction in the block that includes it\n  \"blocktime\" : ttt,       (numeric) The time in seconds since epoch (1 Jan 1970 GMT)\n  \"txid\" : \"transactionid\",   (string) The transaction id.\n  \"time\" : ttt,            (numeric) The transaction time in seconds since epoch (1 Jan 1970 GMT)\n  \"timereceived\" : ttt,    (numeric) The time received in seconds since epoch (1 Jan 1970 GMT)\n  \"bip125-replaceable\": \"yes|no|unknown\",  (string) Whether this transaction could be replaced due to BIP125 (replace-by-fee);\n                                                   may be unknown for unconfirmed transactions not in the mempool\n  \"details\" : [\n    {\n      \"account\" : \"accountname\",      (string) DEPRECATED. The account name involved in the transaction, can be \"\" for the default account.\n      \"address\" : \"address\",          (string) The bitcoin address involved in the transaction\n      \"category\" : \"send|receive\",    (string) The category, either 'send' or 'receive'\n      \"amount\" : x.xxx,                 (numeric) The amount in BTC\n      \"label\" : \"label\",              (string) A comment for the address/transaction, if any\n      \"vout\" : n,                       (numeric) the vout value\n      \"fee\": x.xxx,                     (numeric) The amount of the fee in BTC. This is negative and only available for the \n                                           'send' category of transactions.\n      \"abandoned\": xxx                  (bool) 'true' if the transaction has been abandoned (inputs are respendable). Only available for the \n                                           'send' category of transactions.\n    }\n    ,...\n  ],\n  \"hex\" : \"data\"         (string) Raw data for transaction\n}\n\nExamples:\n> bitcoin-cli gettransaction \"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"\n> bitcoin-cli gettransaction \"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\" true\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"gettransaction\", \"params\": [\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "txid",
+          "desc": "The transaction id",
+          "default": null
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "include_watchonly",
+          "desc": "Whether to include watch-only addresses in balance calculation and details[]",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "getunconfirmedbalance",
+      "desc": "getunconfirmedbalance\nReturns the server's total unconfirmed balance\n\n",
+      "args": []
+    },
+    {
+      "name": "getwalletinfo",
+      "desc": "getwalletinfo\nReturns an object containing various wallet state info.\n\nResult:\n{\n  \"walletname\": xxxxx,             (string) the wallet name\n  \"walletversion\": xxxxx,          (numeric) the wallet version\n  \"balance\": xxxxxxx,              (numeric) the total confirmed balance of the wallet in BTC\n  \"unconfirmed_balance\": xxx,      (numeric) the total unconfirmed balance of the wallet in BTC\n  \"immature_balance\": xxxxxx,      (numeric) the total immature balance of the wallet in BTC\n  \"txcount\": xxxxxxx,              (numeric) the total number of transactions in the wallet\n  \"keypoololdest\": xxxxxx,         (numeric) the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool\n  \"keypoolsize\": xxxx,             (numeric) how many new keys are pre-generated (only counts external keys)\n  \"keypoolsize_hd_internal\": xxxx, (numeric) how many new keys are pre-generated for internal use (used for change outputs, only appears if the wallet is using this feature, otherwise external keys are used)\n  \"unlocked_until\": ttt,           (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n  \"paytxfee\": x.xxxx,              (numeric) the transaction fee configuration, set in BTC/kB\n  \"hdmasterkeyid\": \"<hash160>\"     (string) the Hash160 of the HD master pubkey\n}\n\nExamples:\n> bitcoin-cli getwalletinfo \n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getwalletinfo\", \"params\": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": []
+    },
+    {
+      "name": "importaddress",
+      "desc": "importaddress \"address\" ( \"label\" rescan p2sh )\n\nAdds a script (in hex) or address that can be watched as if it were in your wallet but cannot be used to spend.\n\nArguments:\n1. \"script\"           (string, required) The hex-encoded script (or address)\n2. \"label\"            (string, optional, default=\"\") An optional label\n3. rescan               (boolean, optional, default=true) Rescan the wallet for transactions\n4. p2sh                 (boolean, optional, default=false) Add the P2SH version of the script as well\n\nNote: This call can take minutes to complete if rescan is true.\nIf you have the full public key, you should call importpubkey instead of this.\n\nNote: If you import a non-standard raw script in hex form, outputs sending to it will be treated\nas change, and not show up in many RPCs.\n\nExamples:\n\nImport a script with rescan\n> bitcoin-cli importaddress \"myscript\"\n\nImport using a label without rescan\n> bitcoin-cli importaddress \"myscript\" \"testing\" false\n\nAs a JSON-RPC call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"importaddress\", \"params\": [\"myscript\", \"testing\", false] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "script",
+          "desc": "The hex-encoded script (or address)",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "label",
+          "desc": "An optional label",
+          "default": "\"\""
+        },
+        {
+          "type": "boolean",
+          "required": false,
+          "name": "rescan",
+          "desc": "Rescan the wallet for transactions",
+          "default": "true"
+        },
+        {
+          "type": "boolean",
+          "required": false,
+          "name": "p2sh",
+          "desc": "Add the P2SH version of the script as well",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "importmulti",
+      "desc": "importmulti \"requests\" ( \"options\" )\n\nImport addresses/scripts (with private or public keys, redeem script (P2SH)), rescanning all addresses in one-shot-only (rescan can be disabled via options).\n\nArguments:\n1. requests     (array, required) Data to be imported\n  [     (array of json objects)\n    {\n      \"scriptPubKey\": \"<script>\" | { \"address\":\"<address>\" }, (string / json, required) Type of scriptPubKey (string for script, json for address)\n      \"timestamp\": timestamp | \"now\"                        , (integer / string, required) Creation time of the key in seconds since epoch (Jan 1 1970 GMT),\n                                                              or the string \"now\" to substitute the current synced blockchain time. The timestamp of the oldest\n                                                              key will determine how far back blockchain rescans need to begin for missing wallet transactions.\n                                                              \"now\" can be specified to bypass scanning, for keys which are known to never have been used, and\n                                                              0 can be specified to scan the entire blockchain. Blocks up to 2 hours before the earliest key\n                                                              creation time of all keys being imported by the importmulti call will be scanned.\n      \"redeemscript\": \"<script>\"                            , (string, optional) Allowed only if the scriptPubKey is a P2SH address or a P2SH scriptPubKey\n      \"pubkeys\": [\"<pubKey>\", ... ]                         , (array, optional) Array of strings giving pubkeys that must occur in the output or redeemscript\n      \"keys\": [\"<key>\", ... ]                               , (array, optional) Array of strings giving private keys whose corresponding public keys must occur in the output or redeemscript\n      \"internal\": <true>                                    , (boolean, optional, default: false) Stating whether matching outputs should be treated as not incoming payments\n      \"watchonly\": <true>                                   , (boolean, optional, default: false) Stating whether matching outputs should be considered watched even when they're not spendable, only allowed if keys are empty\n      \"label\": <label>                                      , (string, optional, default: '') Label to assign to the address (aka account name, for now), only allowed with internal=false\n    }\n  ,...\n  ]\n2. options                 (json, optional)\n  {\n     \"rescan\": <false>,         (boolean, optional, default: true) Stating if should rescan the blockchain after all imports\n  }\n\nExamples:\n> bitcoin-cli importmulti '[{ \"scriptPubKey\": { \"address\": \"<my address>\" }, \"timestamp\":1455191478 }, { \"scriptPubKey\": { \"address\": \"<my 2nd address>\" }, \"label\": \"example 2\", \"timestamp\": 1455191480 }]'\n> bitcoin-cli importmulti '[{ \"scriptPubKey\": { \"address\": \"<my address>\" }, \"timestamp\":1455191478 }]' '{ \"rescan\": false}'\n\nResponse is an array with the same size as the input that has the execution result :\n  [{ \"success\": true } , { \"success\": false, \"error\": { \"code\": -1, \"message\": \"Internal Server Error\"} }, ... ]\n\n",
+      "args": [
+        {
+          "type": "array",
+          "required": true,
+          "name": "requests",
+          "desc": "Data to be imported   [     (array of json objects)     {       \"scriptPubKey\": \"<script>\" | { \"address\":\"<address>\" }, (string / json, required) Type of scriptPubKey (string for script, json for address)       \"timestamp\": timestamp | \"now\"                        , (integer / string, required) Creation time of the key in seconds since epoch (Jan 1 1970 GMT),                                                               or the string \"now\" to substitute the current synced blockchain time. The timestamp of the oldest                                                               key will determine how far back blockchain rescans need to begin for missing wallet transactions.                                                               \"now\" can be specified to bypass scanning, for keys which are known to never have been used, and                                                               0 can be specified to scan the entire blockchain. Blocks up to 2 hours before the earliest key                                                               creation time of all keys being imported by the importmulti call will be scanned.       \"redeemscript\": \"<script>\"                            , (string, optional) Allowed only if the scriptPubKey is a P2SH address or a P2SH scriptPubKey       \"pubkeys\": [\"<pubKey>\", ... ]                         , (array, optional) Array of strings giving pubkeys that must occur in the output or redeemscript       \"keys\": [\"<key>\", ... ]                               , (array, optional) Array of strings giving private keys whose corresponding public keys must occur in the output or redeemscript       \"internal\": <true>                                    , (boolean, optional, default: false) Stating whether matching outputs should be treated as not incoming payments       \"watchonly\": <true>                                   , (boolean, optional, default: false) Stating whether matching outputs should be considered watched even when they're not spendable, only allowed if keys are empty       \"label\": <label>                                      , (string, optional, default: '') Label to assign to the address (aka account name, for now), only allowed with internal=false     }   ,...   ]",
+          "default": null
+        },
+        {
+          "type": "json",
+          "required": false,
+          "name": "options",
+          "desc": "{      \"rescan\": <false>,         (boolean, optional, default: true) Stating if should rescan the blockchain after all imports   }",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "importprivkey",
+      "desc": "importprivkey \"privkey\" ( \"label\" ) ( rescan )\n\nAdds a private key (as returned by dumpprivkey) to your wallet.\n\nArguments:\n1. \"privkey\"          (string, required) The private key (see dumpprivkey)\n2. \"label\"            (string, optional, default=\"\") An optional label\n3. rescan               (boolean, optional, default=true) Rescan the wallet for transactions\n\nNote: This call can take minutes to complete if rescan is true.\n\nExamples:\n\nDump a private key\n> bitcoin-cli dumpprivkey \"myaddress\"\n\nImport the private key with rescan\n> bitcoin-cli importprivkey \"mykey\"\n\nImport using a label and without rescan\n> bitcoin-cli importprivkey \"mykey\" \"testing\" false\n\nImport using default blank label and without rescan\n> bitcoin-cli importprivkey \"mykey\" \"\" false\n\nAs a JSON-RPC call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"importprivkey\", \"params\": [\"mykey\", \"testing\", false] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "privkey",
+          "desc": "The private key (see dumpprivkey)",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "label",
+          "desc": "An optional label",
+          "default": "\"\""
+        },
+        {
+          "type": "boolean",
+          "required": false,
+          "name": "rescan",
+          "desc": "Rescan the wallet for transactions",
+          "default": "true"
+        }
+      ]
+    },
+    {
+      "name": "importprunedfunds",
+      "desc": "importprunedfunds\n\nImports funds without rescan. Corresponding address or script must previously be included in wallet. Aimed towards pruned wallets. The end-user is responsible to import additional transactions that subsequently spend the imported outputs or rescan after the point in the blockchain the transaction is included.\n\nArguments:\n1. \"rawtransaction\" (string, required) A raw transaction in hex funding an already-existing address in wallet\n2. \"txoutproof\"     (string, required) The hex output from gettxoutproof that contains the transaction\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "rawtransaction",
+          "desc": "A raw transaction in hex funding an already-existing address in wallet",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": true,
+          "name": "txoutproof",
+          "desc": "The hex output from gettxoutproof that contains the transaction",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "importpubkey",
+      "desc": "importpubkey \"pubkey\" ( \"label\" rescan )\n\nAdds a public key (in hex) that can be watched as if it were in your wallet but cannot be used to spend.\n\nArguments:\n1. \"pubkey\"           (string, required) The hex-encoded public key\n2. \"label\"            (string, optional, default=\"\") An optional label\n3. rescan               (boolean, optional, default=true) Rescan the wallet for transactions\n\nNote: This call can take minutes to complete if rescan is true.\n\nExamples:\n\nImport a public key with rescan\n> bitcoin-cli importpubkey \"mypubkey\"\n\nImport using a label without rescan\n> bitcoin-cli importpubkey \"mypubkey\" \"testing\" false\n\nAs a JSON-RPC call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"importpubkey\", \"params\": [\"mypubkey\", \"testing\", false] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "pubkey",
+          "desc": "The hex-encoded public key",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "label",
+          "desc": "An optional label",
+          "default": "\"\""
+        },
+        {
+          "type": "boolean",
+          "required": false,
+          "name": "rescan",
+          "desc": "Rescan the wallet for transactions",
+          "default": "true"
+        }
+      ]
+    },
+    {
+      "name": "importwallet",
+      "desc": "importwallet \"filename\"\n\nImports keys from a wallet dump file (see dumpwallet).\n\nArguments:\n1. \"filename\"    (string, required) The wallet file\n\nExamples:\n\nDump the wallet\n> bitcoin-cli dumpwallet \"test\"\n\nImport the wallet\n> bitcoin-cli importwallet \"test\"\n\nImport using the json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"importwallet\", \"params\": [\"test\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "filename",
+          "desc": "The wallet file",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "keypoolrefill",
+      "desc": "keypoolrefill ( newsize )\n\nFills the keypool.\n\nArguments\n1. newsize     (numeric, optional, default=100) The new keypool size\n\nExamples:\n> bitcoin-cli keypoolrefill \n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"keypoolrefill\", \"params\": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": []
+    },
+    {
+      "name": "listaccounts",
+      "desc": "listaccounts ( minconf include_watchonly)\n\nDEPRECATED. Returns Object that has account names as keys, account balances as values.\n\nArguments:\n1. minconf             (numeric, optional, default=1) Only include transactions with at least this many confirmations\n2. include_watchonly   (bool, optional, default=false) Include balances in watch-only addresses (see 'importaddress')\n\nResult:\n{                      (json object where keys are account names, and values are numeric balances\n  \"account\": x.xxx,  (numeric) The property name is the account name, and the value is the total balance for the account.\n  ...\n}\n\nExamples:\n\nList account balances where there at least 1 confirmation\n> bitcoin-cli listaccounts \n\nList account balances including zero confirmation transactions\n> bitcoin-cli listaccounts 0\n\nList account balances for 6 or more confirmations\n> bitcoin-cli listaccounts 6\n\nAs json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"listaccounts\", \"params\": [6] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "minconf",
+          "desc": "Only include transactions with at least this many confirmations",
+          "default": "1"
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "include_watchonly",
+          "desc": "Include balances in watch-only addresses (see 'importaddress')",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "listaddressgroupings",
+      "desc": "listaddressgroupings\n\nLists groups of addresses which have had their common ownership\nmade public by common use as inputs or as the resulting change\nin past transactions\n\nResult:\n[\n  [\n    [\n      \"address\",            (string) The bitcoin address\n      amount,                 (numeric) The amount in BTC\n      \"account\"             (string, optional) DEPRECATED. The account\n    ]\n    ,...\n  ]\n  ,...\n]\n\nExamples:\n> bitcoin-cli listaddressgroupings \n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"listaddressgroupings\", \"params\": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": []
+    },
+    {
+      "name": "listlockunspent",
+      "desc": "listlockunspent\n\nReturns list of temporarily unspendable outputs.\nSee the lockunspent call to lock and unlock transactions for spending.\n\nResult:\n[\n  {\n    \"txid\" : \"transactionid\",     (string) The transaction id locked\n    \"vout\" : n                      (numeric) The vout value\n  }\n  ,...\n]\n\nExamples:\n\nList the unspent transactions\n> bitcoin-cli listunspent \n\nLock an unspent transaction\n> bitcoin-cli lockunspent false \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"\n\nList the locked transactions\n> bitcoin-cli listlockunspent \n\nUnlock the transaction again\n> bitcoin-cli lockunspent true \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"\n\nAs a json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"listlockunspent\", \"params\": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": []
+    },
+    {
+      "name": "listreceivedbyaccount",
+      "desc": "listreceivedbyaccount ( minconf include_empty include_watchonly)\n\nDEPRECATED. List balances by account.\n\nArguments:\n1. minconf           (numeric, optional, default=1) The minimum number of confirmations before payments are included.\n2. include_empty     (bool, optional, default=false) Whether to include accounts that haven't received any payments.\n3. include_watchonly (bool, optional, default=false) Whether to include watch-only addresses (see 'importaddress').\n\nResult:\n[\n  {\n    \"involvesWatchonly\" : true,   (bool) Only returned if imported addresses were involved in transaction\n    \"account\" : \"accountname\",  (string) The account name of the receiving account\n    \"amount\" : x.xxx,             (numeric) The total amount received by addresses with this account\n    \"confirmations\" : n,          (numeric) The number of confirmations of the most recent transaction included\n    \"label\" : \"label\"           (string) A comment for the address/transaction, if any\n  }\n  ,...\n]\n\nExamples:\n> bitcoin-cli listreceivedbyaccount \n> bitcoin-cli listreceivedbyaccount 6 true\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"listreceivedbyaccount\", \"params\": [6, true, true] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "minconf",
+          "desc": "The minimum number of confirmations before payments are included.",
+          "default": "1"
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "include_empty",
+          "desc": "Whether to include accounts that haven't received any payments.",
+          "default": "false"
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "include_watchonly",
+          "desc": "Whether to include watch-only addresses (see 'importaddress').",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "listreceivedbyaddress",
+      "desc": "listreceivedbyaddress ( minconf include_empty include_watchonly)\n\nList balances by receiving address.\n\nArguments:\n1. minconf           (numeric, optional, default=1) The minimum number of confirmations before payments are included.\n2. include_empty     (bool, optional, default=false) Whether to include addresses that haven't received any payments.\n3. include_watchonly (bool, optional, default=false) Whether to include watch-only addresses (see 'importaddress').\n\nResult:\n[\n  {\n    \"involvesWatchonly\" : true,        (bool) Only returned if imported addresses were involved in transaction\n    \"address\" : \"receivingaddress\",  (string) The receiving address\n    \"account\" : \"accountname\",       (string) DEPRECATED. The account of the receiving address. The default account is \"\".\n    \"amount\" : x.xxx,                  (numeric) The total amount in BTC received by the address\n    \"confirmations\" : n,               (numeric) The number of confirmations of the most recent transaction included\n    \"label\" : \"label\",               (string) A comment for the address/transaction, if any\n    \"txids\": [\n       n,                                (numeric) The ids of transactions received with the address \n       ...\n    ]\n  }\n  ,...\n]\n\nExamples:\n> bitcoin-cli listreceivedbyaddress \n> bitcoin-cli listreceivedbyaddress 6 true\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"listreceivedbyaddress\", \"params\": [6, true, true] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "minconf",
+          "desc": "The minimum number of confirmations before payments are included.",
+          "default": "1"
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "include_empty",
+          "desc": "Whether to include addresses that haven't received any payments.",
+          "default": "false"
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "include_watchonly",
+          "desc": "Whether to include watch-only addresses (see 'importaddress').",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "listsinceblock",
+      "desc": "listsinceblock ( \"blockhash\" target_confirmations include_watchonly include_removed )\n\nGet all transactions in blocks since block [blockhash], or all transactions if omitted.\nIf \"blockhash\" is no longer a part of the main chain, transactions from the fork point onward are included.\nAdditionally, if include_removed is set, transactions affecting the wallet which were removed are returned in the \"removed\" array.\n\nArguments:\n1. \"blockhash\"            (string, optional) The block hash to list transactions since\n2. target_confirmations:    (numeric, optional, default=1) Return the nth block hash from the main chain. e.g. 1 would mean the best block hash. Note: this is not used as a filter, but only affects [lastblock] in the return value\n3. include_watchonly:       (bool, optional, default=false) Include transactions to watch-only addresses (see 'importaddress')\n4. include_removed:         (bool, optional, default=true) Show transactions that were removed due to a reorg in the \"removed\" array\n                                                           (not guaranteed to work on pruned nodes)\n\nResult:\n{\n  \"transactions\": [\n    \"account\":\"accountname\",       (string) DEPRECATED. The account name associated with the transaction. Will be \"\" for the default account.\n    \"address\":\"address\",    (string) The bitcoin address of the transaction. Not present for move transactions (category = move).\n    \"category\":\"send|receive\",     (string) The transaction category. 'send' has negative amounts, 'receive' has positive amounts.\n    \"amount\": x.xxx,          (numeric) The amount in BTC. This is negative for the 'send' category, and for the 'move' category for moves \n                                          outbound. It is positive for the 'receive' category, and for the 'move' category for inbound funds.\n    \"vout\" : n,               (numeric) the vout value\n    \"fee\": x.xxx,             (numeric) The amount of the fee in BTC. This is negative and only available for the 'send' category of transactions.\n    \"confirmations\": n,       (numeric) The number of confirmations for the transaction. Available for 'send' and 'receive' category of transactions.\n                                          When it's < 0, it means the transaction conflicted that many blocks ago.\n    \"blockhash\": \"hashvalue\",     (string) The block hash containing the transaction. Available for 'send' and 'receive' category of transactions.\n    \"blockindex\": n,          (numeric) The index of the transaction in the block that includes it. Available for 'send' and 'receive' category of transactions.\n    \"blocktime\": xxx,         (numeric) The block time in seconds since epoch (1 Jan 1970 GMT).\n    \"txid\": \"transactionid\",  (string) The transaction id. Available for 'send' and 'receive' category of transactions.\n    \"time\": xxx,              (numeric) The transaction time in seconds since epoch (Jan 1 1970 GMT).\n    \"timereceived\": xxx,      (numeric) The time received in seconds since epoch (Jan 1 1970 GMT). Available for 'send' and 'receive' category of transactions.\n    \"bip125-replaceable\": \"yes|no|unknown\",  (string) Whether this transaction could be replaced due to BIP125 (replace-by-fee);\n                                                   may be unknown for unconfirmed transactions not in the mempool\n    \"abandoned\": xxx,         (bool) 'true' if the transaction has been abandoned (inputs are respendable). Only available for the 'send' category of transactions.\n    \"comment\": \"...\",       (string) If a comment is associated with the transaction.\n    \"label\" : \"label\"       (string) A comment for the address/transaction, if any\n    \"to\": \"...\",            (string) If a comment to is associated with the transaction.\n  ],\n  \"removed\": [\n    <structure is the same as \"transactions\" above, only present if include_removed=true>\n    Note: transactions that were readded in the active chain will appear as-is in this array, and may thus have a positive confirmation count.\n  ],\n  \"lastblock\": \"lastblockhash\"     (string) The hash of the block (target_confirmations-1) from the best block on the main chain. This is typically used to feed back into listsinceblock the next time you call it. So you would generally use a target_confirmations of say 6, so you will be continually re-notified of transactions until they've reached 6 confirmations plus any new ones\n}\n\nExamples:\n> bitcoin-cli listsinceblock \n> bitcoin-cli listsinceblock \"000000000000000bacf66f7497b7dc45ef753ee9a7d38571037cdb1a57f663ad\" 6\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"listsinceblock\", \"params\": [\"000000000000000bacf66f7497b7dc45ef753ee9a7d38571037cdb1a57f663ad\", 6] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": false,
+          "name": "blockhash",
+          "desc": "The block hash to list transactions since",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "target_confirmations:",
+          "desc": "Return the nth block hash from the main chain. e.g. 1 would mean the best block hash. Note: this is not used as a filter, but only affects [lastblock] in the return value",
+          "default": "1"
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "include_watchonly:",
+          "desc": "Include transactions to watch-only addresses (see 'importaddress')",
+          "default": "false"
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "include_removed:",
+          "desc": "Show transactions that were removed due to a reorg in the \"removed\" array                                                            (not guaranteed to work on pruned nodes)",
+          "default": "true"
+        }
+      ]
+    },
+    {
+      "name": "listtransactions",
+      "desc": "listtransactions ( \"account\" count skip include_watchonly)\n\nReturns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.\n\nArguments:\n1. \"account\"    (string, optional) DEPRECATED. The account name. Should be \"*\".\n2. count          (numeric, optional, default=10) The number of transactions to return\n3. skip           (numeric, optional, default=0) The number of transactions to skip\n4. include_watchonly (bool, optional, default=false) Include transactions to watch-only addresses (see 'importaddress')\n\nResult:\n[\n  {\n    \"account\":\"accountname\",       (string) DEPRECATED. The account name associated with the transaction. \n                                                It will be \"\" for the default account.\n    \"address\":\"address\",    (string) The bitcoin address of the transaction. Not present for \n                                                move transactions (category = move).\n    \"category\":\"send|receive|move\", (string) The transaction category. 'move' is a local (off blockchain)\n                                                transaction between accounts, and not associated with an address,\n                                                transaction id or block. 'send' and 'receive' transactions are \n                                                associated with an address, transaction id and block details\n    \"amount\": x.xxx,          (numeric) The amount in BTC. This is negative for the 'send' category, and for the\n                                         'move' category for moves outbound. It is positive for the 'receive' category,\n                                         and for the 'move' category for inbound funds.\n    \"label\": \"label\",       (string) A comment for the address/transaction, if any\n    \"vout\": n,                (numeric) the vout value\n    \"fee\": x.xxx,             (numeric) The amount of the fee in BTC. This is negative and only available for the \n                                         'send' category of transactions.\n    \"confirmations\": n,       (numeric) The number of confirmations for the transaction. Available for 'send' and \n                                         'receive' category of transactions. Negative confirmations indicate the\n                                         transaction conflicts with the block chain\n    \"trusted\": xxx,           (bool) Whether we consider the outputs of this unconfirmed transaction safe to spend.\n    \"blockhash\": \"hashvalue\", (string) The block hash containing the transaction. Available for 'send' and 'receive'\n                                          category of transactions.\n    \"blockindex\": n,          (numeric) The index of the transaction in the block that includes it. Available for 'send' and 'receive'\n                                          category of transactions.\n    \"blocktime\": xxx,         (numeric) The block time in seconds since epoch (1 Jan 1970 GMT).\n    \"txid\": \"transactionid\", (string) The transaction id. Available for 'send' and 'receive' category of transactions.\n    \"time\": xxx,              (numeric) The transaction time in seconds since epoch (midnight Jan 1 1970 GMT).\n    \"timereceived\": xxx,      (numeric) The time received in seconds since epoch (midnight Jan 1 1970 GMT). Available \n                                          for 'send' and 'receive' category of transactions.\n    \"comment\": \"...\",       (string) If a comment is associated with the transaction.\n    \"otheraccount\": \"accountname\",  (string) DEPRECATED. For the 'move' category of transactions, the account the funds came \n                                          from (for receiving funds, positive amounts), or went to (for sending funds,\n                                          negative amounts).\n    \"bip125-replaceable\": \"yes|no|unknown\",  (string) Whether this transaction could be replaced due to BIP125 (replace-by-fee);\n                                                     may be unknown for unconfirmed transactions not in the mempool\n    \"abandoned\": xxx          (bool) 'true' if the transaction has been abandoned (inputs are respendable). Only available for the \n                                         'send' category of transactions.\n  }\n]\n\nExamples:\n\nList the most recent 10 transactions in the systems\n> bitcoin-cli listtransactions \n\nList transactions 100 to 120\n> bitcoin-cli listtransactions \"*\" 20 100\n\nAs a json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"listtransactions\", \"params\": [\"*\", 20, 100] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": false,
+          "name": "account",
+          "desc": "DEPRECATED. The account name. Should be \"*\".",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "count",
+          "desc": "The number of transactions to return",
+          "default": "10"
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "skip",
+          "desc": "The number of transactions to skip",
+          "default": "0"
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "include_watchonly",
+          "desc": "Include transactions to watch-only addresses (see 'importaddress')",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "listunspent",
+      "desc": "listunspent ( minconf maxconf  [\"addresses\",...] [include_unsafe] [query_options])\n\nReturns array of unspent transaction outputs\nwith between minconf and maxconf (inclusive) confirmations.\nOptionally filter to only include txouts paid to specified addresses.\n\nArguments:\n1. minconf          (numeric, optional, default=1) The minimum confirmations to filter\n2. maxconf          (numeric, optional, default=9999999) The maximum confirmations to filter\n3. \"addresses\"      (string) A json array of bitcoin addresses to filter\n    [\n      \"address\"     (string) bitcoin address\n      ,...\n    ]\n4. include_unsafe (bool, optional, default=true) Include outputs that are not safe to spend\n                  See description of \"safe\" attribute below.\n5. query_options    (json, optional) JSON with query options\n    {\n      \"minimumAmount\"    (numeric or string, default=0) Minimum value of each UTXO in BTC\n      \"maximumAmount\"    (numeric or string, default=unlimited) Maximum value of each UTXO in BTC\n      \"maximumCount\"     (numeric or string, default=unlimited) Maximum number of UTXOs\n      \"minimumSumAmount\" (numeric or string, default=unlimited) Minimum sum value of all UTXOs in BTC\n    }\n\nResult\n[                   (array of json object)\n  {\n    \"txid\" : \"txid\",          (string) the transaction id \n    \"vout\" : n,               (numeric) the vout value\n    \"address\" : \"address\",    (string) the bitcoin address\n    \"account\" : \"account\",    (string) DEPRECATED. The associated account, or \"\" for the default account\n    \"scriptPubKey\" : \"key\",   (string) the script key\n    \"amount\" : x.xxx,         (numeric) the transaction output amount in BTC\n    \"confirmations\" : n,      (numeric) The number of confirmations\n    \"redeemScript\" : n        (string) The redeemScript if scriptPubKey is P2SH\n    \"spendable\" : xxx,        (bool) Whether we have the private keys to spend this output\n    \"solvable\" : xxx,         (bool) Whether we know how to spend this output, ignoring the lack of keys\n    \"safe\" : xxx              (bool) Whether this output is considered safe to spend. Unconfirmed transactions\n                              from outside keys and unconfirmed replacement transactions are considered unsafe\n                              and are not eligible for spending by fundrawtransaction and sendtoaddress.\n  }\n  ,...\n]\n\nExamples\n> bitcoin-cli listunspent \n> bitcoin-cli listunspent 6 9999999 \"[\\\"1PGFqEzfmQch1gKD3ra4k18PNj3tTUUSqg\\\",\\\"1LtvqCaApEdUGFkpKMM4MstjcaL4dKg8SP\\\"]\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"listunspent\", \"params\": [6, 9999999 \"[\\\"1PGFqEzfmQch1gKD3ra4k18PNj3tTUUSqg\\\",\\\"1LtvqCaApEdUGFkpKMM4MstjcaL4dKg8SP\\\"]\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n> bitcoin-cli listunspent 6 9999999 '[]' true '{ \"minimumAmount\": 0.005 }'\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"listunspent\", \"params\": [6, 9999999, [] , true, { \"minimumAmount\": 0.005 } ] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "minconf",
+          "desc": "The minimum confirmations to filter",
+          "default": "1"
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "maxconf",
+          "desc": "The maximum confirmations to filter",
+          "default": "9999999"
+        },
+        {
+          "type": "string",
+          "required": true,
+          "name": "addresses",
+          "desc": "A json array of bitcoin addresses to filter     [       \"address\"     (string) bitcoin address       ,...     ]",
+          "default": null
+        },
+        {
+          "type": "bool",
+          "required": false,
+          "name": "include_unsafe",
+          "desc": "Include outputs that are not safe to spend                   See description of \"safe\" attribute below.",
+          "default": "true"
+        },
+        {
+          "type": "json",
+          "required": false,
+          "name": "query_options",
+          "desc": "JSON with query options     {       \"minimumAmount\"    (numeric or string, default=0) Minimum value of each UTXO in BTC       \"maximumAmount\"    (numeric or string, default=unlimited) Maximum value of each UTXO in BTC       \"maximumCount\"     (numeric or string, default=unlimited) Maximum number of UTXOs       \"minimumSumAmount\" (numeric or string, default=unlimited) Minimum sum value of all UTXOs in BTC     }",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "listwallets",
+      "desc": "listwallets\nReturns a list of currently loaded wallets.\nFor full information on the wallet, use \"getwalletinfo\"\n\nResult:\n[                         (json array of strings)\n  \"walletname\"            (string) the wallet name\n   ...\n]\n\nExamples:\n> bitcoin-cli listwallets \n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"listwallets\", \"params\": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": []
+    },
+    {
+      "name": "lockunspent",
+      "desc": "lockunspent unlock ([{\"txid\":\"txid\",\"vout\":n},...])\n\nUpdates list of temporarily unspendable outputs.\nTemporarily lock (unlock=false) or unlock (unlock=true) specified transaction outputs.\nIf no transaction outputs are specified when unlocking then all current locked transaction outputs are unlocked.\nA locked transaction output will not be chosen by automatic coin selection, when spending bitcoins.\nLocks are stored in memory only. Nodes start with zero locked outputs, and the locked output list\nis always cleared (by virtue of process exit) when a node stops or fails.\nAlso see the listunspent call\n\nArguments:\n1. unlock            (boolean, required) Whether to unlock (true) or lock (false) the specified transactions\n2. \"transactions\"  (string, optional) A json array of objects. Each object the txid (string) vout (numeric)\n     [           (json array of json objects)\n       {\n         \"txid\":\"id\",    (string) The transaction id\n         \"vout\": n         (numeric) The output number\n       }\n       ,...\n     ]\n\nResult:\ntrue|false    (boolean) Whether the command was successful or not\n\nExamples:\n\nList the unspent transactions\n> bitcoin-cli listunspent \n\nLock an unspent transaction\n> bitcoin-cli lockunspent false \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"\n\nList the locked transactions\n> bitcoin-cli listlockunspent \n\nUnlock the transaction again\n> bitcoin-cli lockunspent true \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"\n\nAs a json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"lockunspent\", \"params\": [false, \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "boolean",
+          "required": true,
+          "name": "unlock",
+          "desc": "Whether to unlock (true) or lock (false) the specified transactions",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "transactions",
+          "desc": "A json array of objects. Each object the txid (string) vout (numeric)      [           (json array of json objects)        {          \"txid\":\"id\",    (string) The transaction id          \"vout\": n         (numeric) The output number        }        ,...      ]",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "move",
+      "desc": "move \"fromaccount\" \"toaccount\" amount ( minconf \"comment\" )\n\nDEPRECATED. Move a specified amount from one account in your wallet to another.\n\nArguments:\n1. \"fromaccount\"   (string, required) The name of the account to move funds from. May be the default account using \"\".\n2. \"toaccount\"     (string, required) The name of the account to move funds to. May be the default account using \"\".\n3. amount            (numeric) Quantity of BTC to move between accounts.\n4. (dummy)           (numeric, optional) Ignored. Remains for backward compatibility.\n5. \"comment\"       (string, optional) An optional comment, stored in the wallet only.\n\nResult:\ntrue|false           (boolean) true if successful.\n\nExamples:\n\nMove 0.01 BTC from the default account to the account named tabby\n> bitcoin-cli move \"\" \"tabby\" 0.01\n\nMove 0.01 BTC timotei to akiko with a comment and funds have 6 confirmations\n> bitcoin-cli move \"timotei\" \"akiko\" 0.01 6 \"happy birthday!\"\n\nAs a json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"move\", \"params\": [\"timotei\", \"akiko\", 0.01, 6, \"happy birthday!\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "fromaccount",
+          "desc": "The name of the account to move funds from. May be the default account using \"\".",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": true,
+          "name": "toaccount",
+          "desc": "The name of the account to move funds to. May be the default account using \"\".",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": true,
+          "name": "amount",
+          "desc": "Quantity of BTC to move between accounts.",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "(dummy)",
+          "desc": "Ignored. Remains for backward compatibility.",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "comment",
+          "desc": "An optional comment, stored in the wallet only.",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "removeprunedfunds",
+      "desc": "removeprunedfunds \"txid\"\n\nDeletes the specified transaction from the wallet. Meant for use with pruned wallets and as a companion to importprunedfunds. This will affect wallet balances.\n\nArguments:\n1. \"txid\"           (string, required) The hex-encoded id of the transaction you are deleting\n\nExamples:\n> bitcoin-cli removeprunedfunds \"a8d0c0184dde994a09ec054286f1ce581bebf46446a512166eae7628734ea0a5\"\n\nAs a JSON-RPC call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"removeprunedfunds\", \"params\": [\"a8d0c0184dde994a09ec054286f1ce581bebf46446a512166eae7628734ea0a5\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "txid",
+          "desc": "The hex-encoded id of the transaction you are deleting",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "sendfrom",
+      "desc": "sendfrom \"fromaccount\" \"toaddress\" amount ( minconf \"comment\" \"comment_to\" )\n\nDEPRECATED (use sendtoaddress). Sent an amount from an account to a bitcoin address.\n\nArguments:\n1. \"fromaccount\"       (string, required) The name of the account to send funds from. May be the default account using \"\".\n                       Specifying an account does not influence coin selection, but it does associate the newly created\n                       transaction with the account, so the account's balance computation and transaction history can reflect\n                       the spend.\n2. \"toaddress\"         (string, required) The bitcoin address to send funds to.\n3. amount                (numeric or string, required) The amount in BTC (transaction fee is added on top).\n4. minconf               (numeric, optional, default=1) Only use funds with at least this many confirmations.\n5. \"comment\"           (string, optional) A comment used to store what the transaction is for. \n                                     This is not part of the transaction, just kept in your wallet.\n6. \"comment_to\"        (string, optional) An optional comment to store the name of the person or organization \n                                     to which you're sending the transaction. This is not part of the transaction, \n                                     it is just kept in your wallet.\n\nResult:\n\"txid\"                 (string) The transaction id.\n\nExamples:\n\nSend 0.01 BTC from the default account to the address, must have at least 1 confirmation\n> bitcoin-cli sendfrom \"\" \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.01\n\nSend 0.01 from the tabby account to the given address, funds must have at least 6 confirmations\n> bitcoin-cli sendfrom \"tabby\" \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.01 6 \"donation\" \"seans outpost\"\n\nAs a json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"sendfrom\", \"params\": [\"tabby\", \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.01, 6, \"donation\", \"seans outpost\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "fromaccount",
+          "desc": "The name of the account to send funds from. May be the default account using \"\".                        Specifying an account does not influence coin selection, but it does associate the newly created                        transaction with the account, so the account's balance computation and transaction history can reflect                        the spend.",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": true,
+          "name": "toaddress",
+          "desc": "The bitcoin address to send funds to.",
+          "default": null
+        },
+        {
+          "type": "numeric or string",
+          "required": true,
+          "name": "amount",
+          "desc": "The amount in BTC (transaction fee is added on top).",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "minconf",
+          "desc": "Only use funds with at least this many confirmations.",
+          "default": "1"
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "comment",
+          "desc": "A comment used to store what the transaction is for.                                       This is not part of the transaction, just kept in your wallet.",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "comment_to",
+          "desc": "An optional comment to store the name of the person or organization                                       to which you're sending the transaction. This is not part of the transaction,                                       it is just kept in your wallet.",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "sendmany",
+      "desc": "sendmany \"fromaccount\" {\"address\":amount,...} ( minconf \"comment\" [\"address\",...] replaceable conf_target \"estimate_mode\")\n\nSend multiple times. Amounts are double-precision floating point numbers.\n\nArguments:\n1. \"fromaccount\"         (string, required) DEPRECATED. The account to send the funds from. Should be \"\" for the default account\n2. \"amounts\"             (string, required) A json object with addresses and amounts\n    {\n      \"address\":amount   (numeric or string) The bitcoin address is the key, the numeric amount (can be string) in BTC is the value\n      ,...\n    }\n3. minconf                 (numeric, optional, default=1) Only use the balance confirmed at least this many times.\n4. \"comment\"             (string, optional) A comment\n5. subtractfeefrom         (array, optional) A json array with addresses.\n                           The fee will be equally deducted from the amount of each selected address.\n                           Those recipients will receive less bitcoins than you enter in their corresponding amount field.\n                           If no addresses are specified here, the sender pays the fee.\n    [\n      \"address\"          (string) Subtract fee from this address\n      ,...\n    ]\n6. replaceable            (boolean, optional) Allow this transaction to be replaced by a transaction with higher fees via BIP 125\n7. conf_target            (numeric, optional) Confirmation target (in blocks)\n8. \"estimate_mode\"      (string, optional, default=UNSET) The fee estimate mode, must be one of:\n       \"UNSET\"\n       \"ECONOMICAL\"\n       \"CONSERVATIVE\"\n\nResult:\n\"txid\"                   (string) The transaction id for the send. Only 1 transaction is created regardless of \n                                    the number of addresses.\n\nExamples:\n\nSend two amounts to two different addresses:\n> bitcoin-cli sendmany \"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\"\n\nSend two amounts to two different addresses setting the confirmation and comment:\n> bitcoin-cli sendmany \"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" 6 \"testing\"\n\nSend two amounts to two different addresses, subtract fee from amount:\n> bitcoin-cli sendmany \"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" 1 \"\" \"[\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\",\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\"]\"\n\nAs a json rpc call\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"sendmany\", \"params\": [\"\", \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\", 6, \"testing\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "fromaccount",
+          "desc": "DEPRECATED. The account to send the funds from. Should be \"\" for the default account",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": true,
+          "name": "amounts",
+          "desc": "A json object with addresses and amounts     {       \"address\":amount   (numeric or string) The bitcoin address is the key, the numeric amount (can be string) in BTC is the value       ,...     }",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "minconf",
+          "desc": "Only use the balance confirmed at least this many times.",
+          "default": "1"
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "comment",
+          "desc": "A comment",
+          "default": null
+        },
+        {
+          "type": "array",
+          "required": false,
+          "name": "subtractfeefrom",
+          "desc": "A json array with addresses.                            The fee will be equally deducted from the amount of each selected address.                            Those recipients will receive less bitcoins than you enter in their corresponding amount field.                            If no addresses are specified here, the sender pays the fee.     [       \"address\"          (string) Subtract fee from this address       ,...     ]",
+          "default": null
+        },
+        {
+          "type": "boolean",
+          "required": false,
+          "name": "replaceable",
+          "desc": "Allow this transaction to be replaced by a transaction with higher fees via BIP 125",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "conf_target",
+          "desc": "Confirmation target (in blocks)",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "estimate_mode",
+          "desc": "The fee estimate mode, must be one of:        \"UNSET\"        \"ECONOMICAL\"        \"CONSERVATIVE\"",
+          "default": "UNSET"
+        }
+      ]
+    },
+    {
+      "name": "sendtoaddress",
+      "desc": "sendtoaddress \"address\" amount ( \"comment\" \"comment_to\" subtractfeefromamount replaceable conf_target \"estimate_mode\")\n\nSend an amount to a given address.\n\nArguments:\n1. \"address\"            (string, required) The bitcoin address to send to.\n2. \"amount\"             (numeric or string, required) The amount in BTC to send. eg 0.1\n3. \"comment\"            (string, optional) A comment used to store what the transaction is for. \n                             This is not part of the transaction, just kept in your wallet.\n4. \"comment_to\"         (string, optional) A comment to store the name of the person or organization \n                             to which you're sending the transaction. This is not part of the \n                             transaction, just kept in your wallet.\n5. subtractfeefromamount  (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n                             The recipient will receive less bitcoins than you enter in the amount field.\n6. replaceable            (boolean, optional) Allow this transaction to be replaced by a transaction with higher fees via BIP 125\n7. conf_target            (numeric, optional) Confirmation target (in blocks)\n8. \"estimate_mode\"      (string, optional, default=UNSET) The fee estimate mode, must be one of:\n       \"UNSET\"\n       \"ECONOMICAL\"\n       \"CONSERVATIVE\"\n\nResult:\n\"txid\"                  (string) The transaction id.\n\nExamples:\n> bitcoin-cli sendtoaddress \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1\n> bitcoin-cli sendtoaddress \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"donation\" \"seans outpost\"\n> bitcoin-cli sendtoaddress \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 \"\" \"\" true\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"sendtoaddress\", \"params\": [\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "address",
+          "desc": "The bitcoin address to send to.",
+          "default": null
+        },
+        {
+          "type": "numeric or string",
+          "required": true,
+          "name": "amount",
+          "desc": "The amount in BTC to send. eg 0.1",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "comment",
+          "desc": "A comment used to store what the transaction is for.                               This is not part of the transaction, just kept in your wallet.",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "comment_to",
+          "desc": "A comment to store the name of the person or organization                               to which you're sending the transaction. This is not part of the                               transaction, just kept in your wallet.",
+          "default": null
+        },
+        {
+          "type": "boolean",
+          "required": false,
+          "name": "subtractfeefromamount",
+          "desc": "The fee will be deducted from the amount being sent.                              The recipient will receive less bitcoins than you enter in the amount field.",
+          "default": "false"
+        },
+        {
+          "type": "boolean",
+          "required": false,
+          "name": "replaceable",
+          "desc": "Allow this transaction to be replaced by a transaction with higher fees via BIP 125",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "conf_target",
+          "desc": "Confirmation target (in blocks)",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": false,
+          "name": "estimate_mode",
+          "desc": "The fee estimate mode, must be one of:        \"UNSET\"        \"ECONOMICAL\"        \"CONSERVATIVE\"",
+          "default": "UNSET"
+        }
+      ]
+    },
+    {
+      "name": "setaccount",
+      "desc": "setaccount \"address\" \"account\"\n\nDEPRECATED. Sets the account associated with the given address.\n\nArguments:\n1. \"address\"         (string, required) The bitcoin address to be associated with an account.\n2. \"account\"         (string, required) The account to assign the address to.\n\nExamples:\n> bitcoin-cli setaccount \"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"tabby\"\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"setaccount\", \"params\": [\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"tabby\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "address",
+          "desc": "The bitcoin address to be associated with an account.",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": true,
+          "name": "account",
+          "desc": "The account to assign the address to.",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "settxfee",
+      "desc": "settxfee amount\n\nSet the transaction fee per kB. Overwrites the paytxfee parameter.\n\nArguments:\n1. amount         (numeric or string, required) The transaction fee in BTC/kB\n\nResult\ntrue|false        (boolean) Returns true if successful\n\nExamples:\n> bitcoin-cli settxfee 0.00001\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"settxfee\", \"params\": [0.00001] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "numeric or string",
+          "required": true,
+          "name": "amount",
+          "desc": "The transaction fee in BTC/kB",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "signmessage",
+      "desc": "signmessage \"address\" \"message\"\n\nSign a message with the private key of an address\n\nArguments:\n1. \"address\"         (string, required) The bitcoin address to use for the private key.\n2. \"message\"         (string, required) The message to create a signature of.\n\nResult:\n\"signature\"          (string) The signature of the message encoded in base 64\n\nExamples:\n\nUnlock the wallet for 30 seconds\n> bitcoin-cli walletpassphrase \"mypassphrase\" 30\n\nCreate the signature\n> bitcoin-cli signmessage \"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"my message\"\n\nVerify the signature\n> bitcoin-cli verifymessage \"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"signature\" \"my message\"\n\nAs json rpc\n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"signmessage\", \"params\": [\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"my message\"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "address",
+          "desc": "The bitcoin address to use for the private key.",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": true,
+          "name": "message",
+          "desc": "The message to create a signature of.",
+          "default": null
+        }
+      ]
+    }
+  ],
+  "desc": "wallet related RPC"
+}

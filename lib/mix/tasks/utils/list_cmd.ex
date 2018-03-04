@@ -1,4 +1,4 @@
-defmodule ExBitcoin.GenerateRpc.ListCmd do
+defmodule ExBitcoinTask.GenerateRpc.ListCmd do
   @moduledoc """
   Process document for "bitcoin-cli help".
   """
@@ -20,7 +20,7 @@ defmodule ExBitcoin.GenerateRpc.ListCmd do
   def format_response(data) do
     @regex
     |> Regex.split(data, include_captures: true)
-    |> remove_empty
+    |> reject
     |> Enum.chunk_every(2)
     |> Enum.reduce(%{}, fn item, acc ->
       [name_str, values | _] = item
@@ -41,10 +41,17 @@ defmodule ExBitcoin.GenerateRpc.ListCmd do
     values
     |> String.trim
     |> String.split("\n")
-    |> remove_empty
+    |> reject
     |> Enum.map(&get_first(&1, " "))
+    |> reject(["help"])
   end
 
   defp get_first(str, sep), do: str |> String.split(sep) |> List.first
-  defp remove_empty(l), do: Enum.reject(l, fn item -> String.trim(item) == "" end)
+
+  defp reject(item, extra \\ []) do
+    Enum.reject(item, fn name ->
+      name= String.trim(name)
+      name == "" || name in extra
+    end)
+  end
 end

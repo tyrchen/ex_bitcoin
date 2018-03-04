@@ -4,24 +4,24 @@ defmodule Mix.Tasks.ExBitcoin.GenerateRpc do
   """
   use Mix.Task
   require Logger
-  alias ExBitcoin.GenerateRpc.{ListCmd, SingleCmd}
+  alias ExBitcoinTask.GenerateRpc.{ListCmd, SingleCmd}
 
   @list_cmd "bitcoin-cli help"
 
   def run(_) do
     IO.puts "Scraping #{@list_cmd}"
-    data =
-      @list_cmd
-      |> run_bitcoin_cli
-      |> ListCmd.format_response
-      |> Enum.map(fn {k, data} ->
-        items =
-          data
-          |> Map.get("items", [])
-          |> process_commands
-        content = Map.put(data, "items", items)
-        write_file("#{String.downcase(k)}.json", content)
-      end)
+
+    @list_cmd
+    |> run_bitcoin_cli
+    |> ListCmd.format_response
+    |> Enum.map(fn {k, data} ->
+      items =
+        data
+        |> Map.get("items", [])
+        |> process_commands
+      content = Map.put(data, "items", items)
+      write_file("#{String.downcase(k)}.json", content)
+    end)
   end
 
   defp run_bitcoin_cli(cmd) do
@@ -40,7 +40,6 @@ defmodule Mix.Tasks.ExBitcoin.GenerateRpc do
       cli
       |> run_bitcoin_cli
       |> SingleCmd.format_response
-      |> IO.inspect
     end)
   end
 

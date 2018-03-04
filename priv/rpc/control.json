@@ -1,0 +1,34 @@
+{
+  "ns": "Control",
+  "items": [
+    {
+      "name": "getinfo",
+      "desc": "getinfo\n\nDEPRECATED. Returns an object containing various state info.\n\nResult:\n{\n  \"deprecation-warning\": \"...\" (string) warning that the getinfo command is deprecated and will be removed in 0.16\n  \"version\": xxxxx,           (numeric) the server version\n  \"protocolversion\": xxxxx,   (numeric) the protocol version\n  \"walletversion\": xxxxx,     (numeric) the wallet version\n  \"balance\": xxxxxxx,         (numeric) the total bitcoin balance of the wallet\n  \"blocks\": xxxxxx,           (numeric) the current number of blocks processed in the server\n  \"timeoffset\": xxxxx,        (numeric) the time offset\n  \"connections\": xxxxx,       (numeric) the number of connections\n  \"proxy\": \"host:port\",       (string, optional) the proxy used by the server\n  \"difficulty\": xxxxxx,       (numeric) the current difficulty\n  \"testnet\": true|false,      (boolean) if the server is using testnet or not\n  \"keypoololdest\": xxxxxx,    (numeric) the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool\n  \"keypoolsize\": xxxx,        (numeric) how many new keys are pre-generated\n  \"unlocked_until\": ttt,      (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set in BTC/kB\n  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for transactions in BTC/kB\n  \"errors\": \"...\"             (string) any error messages\n}\n\nExamples:\n> bitcoin-cli getinfo \n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getinfo\", \"params\": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": []
+    },
+    {
+      "name": "getmemoryinfo",
+      "desc": "getmemoryinfo (\"mode\")\nReturns an object containing information about memory usage.\nArguments:\n1. \"mode\" determines what kind of information is returned. This argument is optional, the default mode is \"stats\".\n  - \"stats\" returns general statistics about memory usage in the daemon.\n  - \"mallocinfo\" returns an XML string describing low-level heap state (only available if compiled with glibc 2.10+).\n\nResult (mode \"stats\"):\n{\n  \"locked\": {               (json object) Information about locked memory manager\n    \"used\": xxxxx,          (numeric) Number of bytes used\n    \"free\": xxxxx,          (numeric) Number of bytes available in current arenas\n    \"total\": xxxxxxx,       (numeric) Total number of bytes managed\n    \"locked\": xxxxxx,       (numeric) Amount of bytes that succeeded locking. If this number is smaller than total, locking pages failed at some point and key data could be swapped to disk.\n    \"chunks_used\": xxxxx,   (numeric) Number allocated chunks\n    \"chunks_free\": xxxxx,   (numeric) Number unused chunks\n  }\n}\n\nResult (mode \"mallocinfo\"):\n\"<malloc version=\"1\">...\"\n\nExamples:\n> bitcoin-cli getmemoryinfo \n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"getmemoryinfo\", \"params\": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": [
+        {
+          "type": "string",
+          "required": false,
+          "name": "mode",
+          "desc": "determines what kind of information is returned.",
+          "default": "stats"
+        }
+      ]
+    },
+    {
+      "name": "stop",
+      "desc": "stop\n\nStop Bitcoin server.\n",
+      "args": []
+    },
+    {
+      "name": "uptime",
+      "desc": "uptime\n\nReturns the total uptime of the server.\n\nResult:\nttt        (numeric) The number of seconds that the server has been running\n\nExamples:\n> bitcoin-cli uptime \n> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", \"method\": \"uptime\", \"params\": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/\n\n",
+      "args": []
+    }
+  ],
+  "desc": "Control how bitcoin node works"
+}

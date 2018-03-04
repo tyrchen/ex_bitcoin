@@ -4,7 +4,7 @@ defmodule Mix.Tasks.ExBitcoin.Run do
   """
   use Mix.Task
   require Logger
-  alias ExBitcoin.GenerateRpc.SingleCmd
+  alias ExBitcoinTask.GenerateRpc.SingleCmd
 
   @list_cmd "bitcoin-cli help"
 

@@ -1,0 +1,53 @@
+{
+  "ns": "Generating",
+  "items": [
+    {
+      "name": "generate",
+      "desc": "generate nblocks ( maxtries )\n\nMine up to nblocks blocks immediately (before the RPC call returns) to an address in the wallet.\n\nArguments:\n1. nblocks      (numeric, required) How many blocks are generated immediately.\n2. maxtries     (numeric, optional) How many iterations to try (default = 1000000).\n\nResult:\n[ blockhashes ]     (array) hashes of blocks generated\n\nExamples:\n\nGenerate 11 blocks\n> bitcoin-cli generate 11\n\n",
+      "args": [
+        {
+          "type": "numeric",
+          "required": true,
+          "name": "nblocks",
+          "desc": "How many blocks are generated immediately.",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "maxtries",
+          "desc": "How many iterations to try (default = 1000000).",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "generatetoaddress",
+      "desc": "generatetoaddress nblocks address (maxtries)\n\nMine blocks immediately to a specified address (before the RPC call returns)\n\nArguments:\n1. nblocks      (numeric, required) How many blocks are generated immediately.\n2. address      (string, required) The address to send the newly generated bitcoin to.\n3. maxtries     (numeric, optional) How many iterations to try (default = 1000000).\n\nResult:\n[ blockhashes ]     (array) hashes of blocks generated\n\nExamples:\n\nGenerate 11 blocks to myaddress\n> bitcoin-cli generatetoaddress 11 \"myaddress\"\n\n",
+      "args": [
+        {
+          "type": "numeric",
+          "required": true,
+          "name": "nblocks",
+          "desc": "How many blocks are generated immediately.",
+          "default": null
+        },
+        {
+          "type": "string",
+          "required": true,
+          "name": "address",
+          "desc": "The address to send the newly generated bitcoin to.",
+          "default": null
+        },
+        {
+          "type": "numeric",
+          "required": false,
+          "name": "maxtries",
+          "desc": "How many iterations to try (default = 1000000).",
+          "default": null
+        }
+      ]
+    }
+  ],
+  "desc": "Generating blocks and addresses"
+}
