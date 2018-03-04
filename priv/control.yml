@@ -1,0 +1,12 @@
+---
+namespace: Control
+description: Control how bitcoin node works
+items:
+  - name: GetInfo
+    description: prints various information about the node and the network. Deprecated
+
+  - name: Help
+    description: lists all available public RPC commands, or gets help for the specified RPC. Commands which are unavailable will not be listed, such as wallet RPCs if wallet support is disabled.
+
+  - name: Stop
+    description: safely shuts down the Bitcoin Core server.

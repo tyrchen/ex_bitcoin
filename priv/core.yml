@@ -1,0 +1,63 @@
+---
+namespace: Core
+description: General blockchain RPC.
+items:
+  - name: GetBestBlockHash
+    description: returns the header hash of the most recent block on the best block chain.
+
+  - name: GetBlock
+    description: gets a block with a particular header hash from the local block database either as a JSON object or as a serialized block. Updated in 0.13.0
+
+  - name: GetBlockChainInfo
+    description: provides information about the current state of the block chain. Updated in 0.12.1
+
+  - name: GetBlockCount
+    description: returns the number of blocks in the local best block chain.
+
+  - name: GetBlockHash
+    description: returns the header hash of a block at the given height in the local best block chain.
+
+  - name: GetBlockHeader
+    description: gets a block header with a particular header hash from the local block database either as a JSON object or as a serialized block header. New in 0.12.0
+
+  - name: GetChainTips
+    description: returns information about the highest-height block (tip) of each local block chain.
+
+  - name: GetDifficulty
+    description: returns the proof-of-work difficulty as a multiple of the minimum difficulty.
+
+  - name: GetMemPoolAncestors
+    description: returns all in-mempool ancestors for a transaction in the mempool. New in 0.13.0
+
+  - name: GetMemPoolDescendants
+    description: returns all in-mempool descendants for a transaction in the mempool. New in 0.13.0
+
+  - name: GetMemPoolEntry
+    description: returns mempool data for given transaction (must be in mempool). New in 0.13.0
+
+  - name: GetMemPoolInfo
+    description: returns information about the node’s current transaction memory pool. Updated in 0.12.0
+
+  - name: GetRawMemPool
+    description: returns all transaction identifiers (TXIDs) in the memory pool as a JSON array, or detailed information about each transaction in the memory pool as a JSON object. Updated in 0.13.0
+
+  - name: GetTxOut
+    description: returns details about a transaction output. Only unspent transaction outputs (UTXOs) are guaranteed to be available.
+
+  - name: GetTxOutProof
+    description: returns a hex-encoded proof that one or more specified transactions were included in a block. New in 0.11.0
+
+  - name: GetTxOutSetInfo
+    description: returns statistics about the confirmed unspent transaction output (UTXO) set. Note that this call may take some time and that it only counts outputs from confirmed transactions—it does not count outputs from the memory pool.
+
+  - name: PreciousBlock
+    description: treats a block as if it were received before others with the same work. New in 0.14.0
+
+  - name: PruneBlockChain
+    description: prunes the blockchain up to a specified height or timestamp. New in 0.14.0
+
+  - name: VerifyChain
+    description: verifies each entry in the local block chain database.
+
+  - name: VerifyTxOutProof
+    description: verifies that a proof points to one or more transactions in a block, returning the transactions the proof commits to and throwing an RPC error if the block is not in our best block chain. New in 0.11.0
