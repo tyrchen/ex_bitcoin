@@ -22,14 +22,13 @@ defmodule ExBitcoinUtils.Gen do
           end
         end)
 
-      moduledoc = quote do
-        @moduledoc unquote(mdoc)
-      end
+      moduledoc =
+        quote do
+          @moduledoc unquote(mdoc)
+        end
 
       name = String.to_atom("Elixir.ExBitcoin.#{ns}")
       Module.create(name, [moduledoc] ++ [contents], Macro.Env.location(__ENV__))
     end
-
   end
-
 end

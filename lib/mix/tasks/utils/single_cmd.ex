@@ -24,20 +24,24 @@ defmodule ExBitcoinTask.GenerateRpc.SingleCmd do
 
     case fn_name do
       {:ok, name} -> Map.put(data, "name", name)
-      err         -> Logger.error("Failed to get function name: #{inspect err}")
+      err -> Logger.error("Failed to get function name: #{inspect(err)}")
     end
   end
 
   defp extract_args(%{"_args" => ""} = data), do: data
+
   defp extract_args(%{"name" => "getmemoryinfo"} = data) do
-    Map.put(data, "args", [%{
+    Map.put(data, "args", [
+      %{
         "default" => "stats",
         "desc" => "determines what kind of information is returned.",
         "name" => "mode",
         "required" => false,
         "type" => "string"
-      }])
+      }
+    ])
   end
+
   defp extract_args(data) do
     result =
       {:ok, data}
@@ -47,30 +51,25 @@ defmodule ExBitcoinTask.GenerateRpc.SingleCmd do
       ~>> Enum.map(&extract_arg/1)
 
     case result do
-      {:ok, args} -> Map.put(data, "args", args)
-      err         ->
-        Logger.error("Failed to get function args: #{inspect err}")
+      {:ok, args} ->
+        Map.put(data, "args", args)
+
+      err ->
+        Logger.error("Failed to get function args: #{inspect(err)}")
         data
     end
   end
 
-  defp get_first(str, sep), do: str |> String.split(sep) |> List.first
+  defp get_first(str, sep), do: str |> String.split(sep) |> List.first()
 
   defp split_args(str) do
     result = Regex.replace(~r/\n(?!\d+)/, str, " ")
     String.split(result, "\n")
   end
 
-  # defp extract_arg(str) do
-  #   regex = ~r/\d*\.\s*\"*(?<name>[^"\s]+)\"*\s*\(\s*(?<type>[^,)]+)\s*,*\s*(?<req>\w*),*\s*([^(default|,)]+,\s*)*(default=)?(?<default>[^,\)+]*)[^)]*\)\s*(?<desc>.+)/
-  #
-  #   regex
-  #   |> Regex.named_captures(str)
-  #   |> transform
-  # end
-
   defp extract_arg(str) do
     regex = ~r/\d*\.\s*\"*(?<name>[^"\s]+)\"*\s*\(\s*(?<data>[^)]+)\)\s*(?<desc>.+)*/
+
     regex
     |> Regex.named_captures(str)
     |> transform
@@ -85,8 +84,8 @@ defmodule ExBitcoinTask.GenerateRpc.SingleCmd do
       |> process_type
 
     capture
-      |> Map.delete("data")
-      |> Map.merge(Map.merge(@default_type, data))
+    |> Map.delete("data")
+    |> Map.merge(Map.merge(@default_type, data))
   end
 
   defp process_type([type]) do
@@ -94,16 +93,23 @@ defmodule ExBitcoinTask.GenerateRpc.SingleCmd do
   end
 
   defp process_type([type, required]) do
-    is_required = if required == "optional" do false else true end
+    is_required =
+      if required == "optional" do
+        false
+      else
+        true
+      end
+
     Map.merge(process_type([type]), %{"required" => is_required})
   end
 
-  defp process_type([type, required|rest]) do
+  defp process_type([type, required | rest]) do
     default =
       case Enum.find(rest, nil, &String.starts_with?(&1, "default")) do
         nil -> nil
-        v   -> Regex.replace(~r/default\s*=\s*/, v, "")
+        v -> Regex.replace(~r/default\s*=\s*/, v, "")
       end
+
     Map.merge(process_type([type, required]), %{"default" => default})
   end
 
@@ -113,6 +119,7 @@ defmodule ExBitcoinTask.GenerateRpc.SingleCmd do
 
   defp breakdown(data) do
     map = %{"_args" => "", "desc" => data, "name" => "", "args" => []}
+
     case String.split(data, "Arguments:\n") do
       [_doc] -> map
       [_, args] -> Map.put(map, "_args", args)

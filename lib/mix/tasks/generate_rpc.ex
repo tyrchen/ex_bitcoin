@@ -9,16 +9,17 @@ defmodule Mix.Tasks.ExBitcoin.GenerateRpc do
   @list_cmd "bitcoin-cli help"
 
   def run(_) do
-    IO.puts "Scraping #{@list_cmd}"
+    IO.puts("Scraping #{@list_cmd}")
 
     @list_cmd
     |> run_bitcoin_cli
-    |> ListCmd.format_response
+    |> ListCmd.format_response()
     |> Enum.map(fn {k, data} ->
       items =
         data
         |> Map.get("items", [])
         |> process_commands
+
       content = Map.put(data, "items", items)
       write_file("#{String.downcase(k)}.json", content)
     end)
@@ -35,24 +36,26 @@ defmodule Mix.Tasks.ExBitcoin.GenerateRpc do
     Enum.map(commands, fn cmd_name ->
       cli = @list_cmd <> " #{cmd_name}"
 
-      IO.puts "Scraping #{cli}"
+      IO.puts("Scraping #{cli}")
 
       cli
       |> run_bitcoin_cli
-      |> SingleCmd.format_response
+      |> SingleCmd.format_response()
     end)
   end
 
   defp write_file(filename, content) do
     path =
       :ex_bitcoin
-      |> Application.app_dir
+      |> Application.app_dir()
       |> Path.join("priv/rpc/#{filename}")
 
     case Poison.encode_to_iodata(content, pretty: true) do
-      {:ok, data} -> File.write!(path, data)
-      err           ->
-        IO.inspect(content)
+      {:ok, data} ->
+        File.write!(path, data)
+
+      err ->
+        IO.puts("#{inspect(content)}")
         throw(err)
     end
   end
