@@ -59,7 +59,7 @@ defmodule ExBitcoin.MixProject do
 
   defp package do
     [
-      files: ["lib", "mix.exs", "README*", "LICENSE*", "version", ".elixir_version"],
+      files: ["lib", "priv", "mix.exs", "README*", "LICENSE*", "version", ".elixir_version"],
       licenses: ["MIT"],
       maintainers: ["tyr.chen@gmail.com"],
       links: %{
