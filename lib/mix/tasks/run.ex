@@ -9,10 +9,9 @@ defmodule Mix.Tasks.ExBitcoin.Run do
   @list_cmd "bitcoin-cli help"
 
   def run(name) do
-    @list_cmd <> " #{List.first(name)}"
+    (@list_cmd <> " #{List.first(name)}")
     |> run_bitcoin_cli
-    |> SingleCmd.format_response
-    |> IO.inspect
+    |> SingleCmd.format_response()
   end
 
   defp run_bitcoin_cli(cmd) do
@@ -21,5 +20,4 @@ defmodule Mix.Tasks.ExBitcoin.Run do
     |> :os.cmd()
     |> to_string
   end
-
 end

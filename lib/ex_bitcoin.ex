@@ -8,12 +8,11 @@ defmodule ExBitcoin do
 
   path =
     :ex_bitcoin
-    |> Application.app_dir
+    |> Application.app_dir()
     |> Path.join("priv/rpc")
 
   path
-  |> File.ls!
+  |> File.ls!()
   |> Enum.map(&Path.join(path, &1))
   |> Enum.map(&Gen.module/1)
-
 end

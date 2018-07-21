@@ -33,24 +33,24 @@ defmodule ExBitcoinTask.GenerateRpc.ListCmd do
   end
 
   defp format_name(name) do
-     %{"name" => name} = Regex.named_captures(@regex, name)
-     name
+    %{"name" => name} = Regex.named_captures(@regex, name)
+    name
   end
 
   defp format_values(values) do
     values
-    |> String.trim
+    |> String.trim()
     |> String.split("\n")
     |> reject
     |> Enum.map(&get_first(&1, " "))
     |> reject(["help"])
   end
 
-  defp get_first(str, sep), do: str |> String.split(sep) |> List.first
+  defp get_first(str, sep), do: str |> String.split(sep) |> List.first()
 
   defp reject(item, extra \\ []) do
     Enum.reject(item, fn name ->
-      name= String.trim(name)
+      name = String.trim(name)
       name == "" || name in extra
     end)
   end
