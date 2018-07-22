@@ -1,6 +1,6 @@
 # ExBitcoin
 
-**TODO: Add description**
+If you want to use :ex_bitcoin, please include :http_poison in in your application. Otherwise the RPC cannot work.
 
 ## Installation
 
@@ -18,4 +18,3 @@ end
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/ex_bitcoin](https://hexdocs.pm/ex_bitcoin).
-
