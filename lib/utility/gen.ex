@@ -15,7 +15,7 @@ defmodule ExBitcoinUtils.Gen do
           quote do
             @spec unquote(String.to_atom(name))(unquote_splicing(Utils.gen_spec(args))) :: any
             @doc unquote(fdoc)
-            def unquote(String.to_atom(name))(unquote_splicing(Utils.gen_args(args, ExBitcoin))) do
+            def unquote(String.to_atom(name))(unquote_splicing(Utils.gen_args(args))) do
               args = Enum.map(binding(), fn {_, v} -> v end)
               Rpc.request(unquote(String.to_atom(name)), args)
             end
